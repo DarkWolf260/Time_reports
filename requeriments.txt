@@ -1,0 +1,10 @@
+# requirements.txt
+# Dependencias para la aplicación de reportes meteorológicos
+
+# Framework principal
+flet>=0.24.0
+
+# Dependencias adicionales para desarrollo (opcional)
+# pytest>=7.0.0  # Para pruebas unitarias
+# black>=22.0.0  # Para formateo de código
+# flake8>=5.0.0  # Para linting
