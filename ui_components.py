@@ -232,16 +232,42 @@ class OperatorManagementDialog:
             ],
             **InputStyles.dropdown(self.app_state.is_dark_theme)
         )
-    
+
+    def update_theme(self):
+        """Actualiza los estilos de los componentes del diálogo."""
+        is_dark = self.app_state.is_dark_theme
+
+        # Actualizar TextFields
+        tf_style = InputStyles.textfield(is_dark)
+        for field in [self.nombre_field, self.cedula_field]:
+            for key, value in tf_style.items():
+                setattr(field, key, value)
+
+        # Actualizar Dropdowns
+        dd_style = InputStyles.dropdown(is_dark)
+        for dropdown in [self.cargo_dropdown, self.jerarquia_dropdown, self.eliminar_dropdown]:
+            for key, value in dd_style.items():
+                setattr(dropdown, key, value)
+
+        # Si el diálogo está abierto, actualizar sus propiedades
+        if self.dialog:
+            # Actualizar título
+            self.dialog.title.style = TextStyles.subtitle(is_dark)
+
+            # Actualizar botón de cerrar
+            self.dialog.actions[0].style = ButtonStyles.secondary(is_dark)
+
+            # Actualizar propiedades del diálogo
+            dialog_style = ContainerStyles.dialog(is_dark)
+            self.dialog.bgcolor = dialog_style.get("bgcolor")
+            self.dialog.shape = ft.RoundedRectangleBorder(radius=dialog_style.get("border_radius", 0))
+
     def show(self):
         """Muestra el diálogo."""
-        # Get dialog colors but filter out unsupported properties for AlertDialog
-        dialog_colors = ContainerStyles.dialog(self.app_state.is_dark_theme)
-        
-        # Only use supported AlertDialog properties
-        supported_props = {}
-        if 'bgcolor' in dialog_colors:
-            supported_props['bgcolor'] = dialog_colors['bgcolor']
+        # Actualizar tema antes de mostrar
+        self.update_theme()
+
+        dialog_style = ContainerStyles.dialog(self.app_state.is_dark_theme)
         
         self.dialog = ft.AlertDialog(
             modal=True,
@@ -249,33 +275,28 @@ class OperatorManagementDialog:
                 "Gestión de Operadores",
                 style=TextStyles.subtitle(self.app_state.is_dark_theme)
             ),
-            content=ft.Container(
-                content=ft.Column([
-                    self.nombre_field,
-                    self.cedula_field,
-                    self.cargo_dropdown,
-                    self.jerarquia_dropdown,
-                    ft.Row([
-                        ft.ElevatedButton(
-                            "Añadir",
-                            on_click=self._agregar_operador,
-                            style=ButtonStyles.primary()
-                        )
-                    ], alignment="center"),
-                    ft.Divider(),
-                    self.eliminar_dropdown,
-                    ft.Row([
-                        ft.ElevatedButton(
-                            "Eliminar",
-                            on_click=self._eliminar_operador,
-                            style=ButtonStyles.danger()
-                        )
-                    ], alignment="center")
-                ], tight=True, width=300, alignment="center", horizontal_alignment="center"),
-                padding=20,
-                border_radius=12 if 'border_radius' in dialog_colors else 0,
-                bgcolor=dialog_colors.get('bgcolor')
-            ),
+            content=ft.Column([
+                self.nombre_field,
+                self.cedula_field,
+                self.cargo_dropdown,
+                self.jerarquia_dropdown,
+                ft.Row([
+                    ft.ElevatedButton(
+                        "Añadir",
+                        on_click=self._agregar_operador,
+                        style=ButtonStyles.primary()
+                    )
+                ], alignment="center"),
+                ft.Divider(),
+                self.eliminar_dropdown,
+                ft.Row([
+                    ft.ElevatedButton(
+                        "Eliminar",
+                        on_click=self._eliminar_operador,
+                        style=ButtonStyles.danger()
+                    )
+                ], alignment="center")
+            ], tight=True, width=300, alignment="center", horizontal_alignment="center"),
             actions=[
                 ft.ElevatedButton(
                     "Cerrar",
@@ -284,7 +305,8 @@ class OperatorManagementDialog:
                 )
             ],
             actions_alignment="center",
-            **supported_props
+            bgcolor=dialog_style.get("bgcolor"),
+            shape=ft.RoundedRectangleBorder(radius=dialog_style.get("border_radius", 0))
         )
         
         self.page.open(self.dialog)
@@ -393,3 +415,4 @@ class ActionButtons:
     def update_theme(self):
         """Actualiza los estilos según el tema."""
         self.manage_button.style = ButtonStyles.secondary(self.app_state.is_dark_theme)
+        self.operator_management.update_theme()
