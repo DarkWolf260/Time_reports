@@ -6,10 +6,10 @@ Refactorizada con arquitectura limpia y componentes reutilizables.
 import flet as ft
 from models import AppState
 from ui_components import (
-    ThemeToggleButton, ReportDisplay, WeatherSelector, 
-    OperatorSelector, ActionButtons
+    ReportDisplay, WeatherSelector, OperatorSelector,
+    ActionButtons, SettingsDialog
 )
-from styles import ThemeManager, TextStyles, ContainerStyles
+from styles import ThemeManager, TextStyles, ContainerStyles, Colors
 from config import WINDOW_CONFIG
 
 class WeatherReportApp:
