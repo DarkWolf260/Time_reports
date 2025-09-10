@@ -485,3 +485,31 @@ class ActionButtons:
     def update_theme(self):
         """Actualiza los estilos según el tema."""
         self.operator_management.update_theme()
+
+class ThemeToggleButton:
+    """Un botón para cambiar entre tema claro y oscuro."""
+
+    def __init__(self, app_state: AppState, on_change: Callable):
+        self.app_state = app_state
+        self.on_change = on_change
+        self.button = self._create_button()
+
+    def _create_button(self) -> ft.IconButton:
+        is_dark = self.app_state.is_dark_theme
+        return ft.IconButton(
+            icon=ThemeManager.get_theme_icon(is_dark),
+            tooltip=ThemeManager.get_theme_tooltip(is_dark),
+            on_click=self._toggle_theme,
+        )
+
+    def _toggle_theme(self, e):
+        """Cambia el estado del tema y notifica."""
+        self.app_state.is_dark_theme = not self.app_state.is_dark_theme
+        self.update_theme()
+        self.on_change()
+
+    def update_theme(self):
+        """Actualiza el ícono y tooltip del botón."""
+        is_dark = self.app_state.is_dark_theme
+        self.button.icon = ThemeManager.get_theme_icon(is_dark)
+        self.button.tooltip = ThemeManager.get_theme_tooltip(is_dark)

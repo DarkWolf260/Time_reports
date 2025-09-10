@@ -7,7 +7,7 @@ import flet as ft
 from models import AppState
 from ui_components import (
     ReportDisplay, WeatherSelector, OperatorSelector,
-    ActionButtons, SettingsDialog
+    ActionButtons, SettingsDialog, ThemeToggleButton
 )
 from styles import ThemeManager, TextStyles, ContainerStyles, Colors
 from config import WINDOW_CONFIG

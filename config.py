@@ -6,6 +6,7 @@ Configuración y constantes de la aplicación de reportes meteorológicos.
 # Configuración de la aplicación
 OPERADORES_FILE = "operadores.json"
 USER_CONFIG_FILE = "user_config.json"
+DEPARTAMENTO = "PROTECCIÓN CIVIL"
 
 # Configuración de la ventana
 WINDOW_CONFIG = {
