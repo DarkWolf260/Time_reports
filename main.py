@@ -6,6 +6,7 @@ Refactorizada con arquitectura limpia y componentes reutilizables.
 import flet as ft
 from models import AppState
 from ui_components import (
+from ui_components import (
     ReportDisplay, WeatherSelector, OperatorSelector, 
     ActionButtons, SettingsDialog
 )

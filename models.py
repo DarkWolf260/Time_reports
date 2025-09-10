@@ -8,7 +8,7 @@ import datetime
 import re
 from typing import List, Dict, Optional
 from dataclasses import dataclass
-from config import OPERADORES_FILE, TIEMPO, EMOJI_TIEMPO
+from config import OPERADORES_FILE, TIEMPO, EMOJI_TIEMPO, USER_CONFIG_FILE, DEPARTAMENTO
 
 @dataclass
 class Operador:
@@ -127,7 +127,12 @@ class ReportGenerator:
     """Generador de reportes meteorológicos."""
     
     @staticmethod
-    def generar_reporte(indice_tiempo: int, operador: Optional[Operador]) -> str:
+    def generar_reporte(
+        indice_tiempo: int,
+        operador: Optional[Operador],
+        municipio: str,
+        departamento: str
+    ) -> str:
         """Genera el reporte meteorológico."""
         fecha_actual = datetime.date.today().strftime('%d/%m/%Y')
         hora_actual = datetime.datetime.now().strftime('%H:%M')
@@ -141,7 +146,7 @@ class ReportGenerator:
         
         # Generar reporte
         reporte = (
-            f"*PROTECCIÓN CIVIL MUNICIPIO GUANTA* 🚨\n\n"
+            f"*{departamento} MUNICIPIO {municipio.upper()}* 🚨\n\n"
             f"*·   REPORTE DEL ESTADO DEL TIEMPO:* {EMOJI_TIEMPO[indice_tiempo]}\n"
             f"*·   FECHA:* {fecha_actual}\n"
             f"*·   HORA:* {hora_actual} HLV\n\n"
@@ -196,7 +201,35 @@ class AppState:
         self.indice_tiempo = 0
         self.indice_operador = 0
         self.is_dark_theme = False
-    
+        self.departamento = DEPARTAMENTO
+        self.municipio = "Guanta"  # Valor por defecto
+        self.cargar_configuracion()
+
+    def cargar_configuracion(self):
+        """Carga la configuración del usuario desde un archivo JSON."""
+        try:
+            if os.path.exists(USER_CONFIG_FILE):
+                with open(USER_CONFIG_FILE, "r", encoding="utf-8") as f:
+                    config = json.load(f)
+                    self.is_dark_theme = config.get("is_dark_theme", self.is_dark_theme)
+                    self.departamento = config.get("departamento", self.departamento)
+                    self.municipio = config.get("municipio", self.municipio)
+        except (json.JSONDecodeError, IOError) as e:
+            print(f"Error al cargar la configuración: {e}")
+
+    def guardar_configuracion(self):
+        """Guarda la configuración actual del usuario en un archivo JSON."""
+        config = {
+            "is_dark_theme": self.is_dark_theme,
+            "departamento": self.departamento,
+            "municipio": self.municipio
+        }
+        try:
+            with open(USER_CONFIG_FILE, "w", encoding="utf-8") as f:
+                json.dump(config, f, ensure_ascii=False, indent=4)
+        except IOError as e:
+            print(f"Error al guardar la configuración: {e}")
+
     def obtener_operador_actual(self) -> Optional[Operador]:
         """Obtiene el operador actualmente seleccionado."""
         return self.operador_manager.obtener_operador_por_indice(self.indice_operador)
@@ -215,4 +248,9 @@ class AppState:
     def generar_reporte_actual(self) -> str:
         """Genera el reporte con el estado actual."""
         operador = self.obtener_operador_actual()
-        return ReportGenerator.generar_reporte(self.indice_tiempo, operador)
+        return ReportGenerator.generar_reporte(
+            self.indice_tiempo,
+            operador,
+            self.municipio,
+            self.departamento
+        )

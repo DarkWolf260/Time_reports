@@ -3,6 +3,7 @@
 Componentes de interfaz de usuario reutilizables.
 """
 import flet as ft
+import json
 from typing import Callable, Optional, List
 from models import AppState, Operador, ReportGenerator
 from styles import (
@@ -10,33 +11,6 @@ from styles import (
     Colors, ThemeManager
 )
 from config import EMOJI_TIEMPO, NOMBRES_TIEMPO, CARGOS, JERARQUIAS
-
-class ThemeToggleButton:
-    """Botón para cambiar el tema de la aplicación."""
-    
-    def __init__(self, app_state: AppState, on_theme_change: Callable):
-        self.app_state = app_state
-        self.on_theme_change = on_theme_change
-        self.button = self._create_button()
-    
-    def _create_button(self) -> ft.IconButton:
-        return ft.IconButton(
-            icon=ThemeManager.get_theme_icon(self.app_state.is_dark_theme),
-            icon_size=30,
-            tooltip=ThemeManager.get_theme_tooltip(self.app_state.is_dark_theme),
-            on_click=self._toggle_theme,
-            icon_color=Colors.DARK["text_secondary"] if self.app_state.is_dark_theme else Colors.LIGHT["text_secondary"]
-        )
-    
-    def _toggle_theme(self, e):
-        self.app_state.is_dark_theme = not self.app_state.is_dark_theme
-        self.on_theme_change()
-        self._update_button()
-    
-    def _update_button(self):
-        self.button.icon = ThemeManager.get_theme_icon(self.app_state.is_dark_theme)
-        self.button.tooltip = ThemeManager.get_theme_tooltip(self.app_state.is_dark_theme)
-        self.button.icon_color = Colors.DARK["text_secondary"] if self.app_state.is_dark_theme else Colors.LIGHT["text_secondary"]
 
 class ReportDisplay:
     """Componente para mostrar el reporte generado."""
@@ -58,10 +32,6 @@ class ReportDisplay:
     def _create_container(self) -> ft.Container:
         return ft.Container(
             ft.Column([
-                ft.Text(
-                    "REPORTE DEL TIEMPO",
-                    style=TextStyles.title(self.app_state.is_dark_theme)
-                ),
                 self.text_widget
             ], alignment="center", horizontal_alignment="center", spacing=12),
             **ContainerStyles.card(self.app_state.is_dark_theme),
@@ -94,9 +64,6 @@ class ReportDisplay:
         container_style = ContainerStyles.card(self.app_state.is_dark_theme)
         for key, value in container_style.items():
             setattr(self.container, key, value)
-        
-        # Actualizar título
-        self.container.content.controls[0].style = TextStyles.title(self.app_state.is_dark_theme)
         
         # Actualizar spans del reporte
         self.update_report()
@@ -377,6 +344,103 @@ class OperatorManagementDialog:
         self.page.snack_bar.open = True
         self.page.update()
 
+class SettingsDialog:
+    """Diálogo para configurar el departamento y municipio."""
+
+    def __init__(self, app_state: AppState, page: ft.Page):
+        self.app_state = app_state
+        self.page = page
+        self.dialog = None
+        self.municipalities = self._load_municipalities()
+        self._create_form_fields()
+
+    def _load_municipalities(self) -> List[str]:
+        """Carga la lista de municipios desde el archivo JSON."""
+        try:
+            with open("municipios.json", "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            print(f"Error al cargar municipios.json: {e}")
+            return ["Guanta"] # Valor de respaldo
+
+    def _create_form_fields(self):
+        """Crea los campos del formulario de ajustes."""
+        self.departamento_field = ft.TextField(
+            label="Departamento",
+            value=self.app_state.departamento,
+            **InputStyles.textfield(self.app_state.is_dark_theme)
+        )
+        self.municipio_dropdown = ft.Dropdown(
+            label="Municipio",
+            options=[ft.dropdown.Option(m) for m in self.municipalities],
+            value=self.app_state.municipio,
+            **InputStyles.dropdown(self.app_state.is_dark_theme)
+        )
+
+    def update_theme(self):
+        """Actualiza los estilos de los componentes del diálogo."""
+        is_dark = self.app_state.is_dark_theme
+
+        # Actualizar TextField
+        tf_style = InputStyles.textfield(is_dark)
+        for key, value in tf_style.items():
+            setattr(self.departamento_field, key, value)
+
+        # Actualizar Dropdown
+        dd_style = InputStyles.dropdown(is_dark)
+        for key, value in dd_style.items():
+            setattr(self.municipio_dropdown, key, value)
+
+        if self.dialog:
+            self.dialog.title.style = TextStyles.subtitle(is_dark)
+            self.dialog.actions[0].style = ButtonStyles.primary()
+            self.dialog.actions[1].style = ButtonStyles.secondary(is_dark)
+            dialog_style = ContainerStyles.dialog(is_dark)
+            self.dialog.bgcolor = dialog_style.get("bgcolor")
+            self.dialog.shape = ft.RoundedRectangleBorder(radius=dialog_style.get("border_radius", 0))
+
+    def show(self):
+        """Muestra el diálogo de ajustes."""
+        self.update_theme()
+
+        self.dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Ajustes Generales"),
+            content=ft.Column([
+                self.departamento_field,
+                self.municipio_dropdown
+            ], tight=True, width=300),
+            actions=[
+                ft.ElevatedButton("Guardar", on_click=self._save_settings),
+                ft.ElevatedButton("Cerrar", on_click=self._close_dialog)
+            ],
+            actions_alignment="center"
+        )
+
+        # Aplicar estilos al abrir
+        self.update_theme()
+
+        self.page.open(self.dialog)
+
+    def _save_settings(self, e):
+        """Guarda los ajustes y cierra el diálogo."""
+        self.app_state.departamento = self.departamento_field.value or "PROTECCIÓN CIVIL"
+        self.app_state.municipio = self.municipio_dropdown.value or "Guanta"
+        self.app_state.guardar_configuracion()
+
+        self._show_snackbar("Ajustes guardados", Colors.SUCCESS)
+        self._close_dialog(e)
+
+    def _close_dialog(self, e):
+        """Cierra el diálogo."""
+        self.page.close(self.dialog)
+
+    def _show_snackbar(self, mensaje: str, color):
+        """Muestra un snackbar con un mensaje."""
+        self.page.snack_bar = ft.SnackBar(ft.Text(mensaje, color=color))
+        self.page.snack_bar.open = True
+        self.page.update()
+
 class ActionButtons:
     """Botones de acción de la aplicación."""
     
@@ -385,22 +449,13 @@ class ActionButtons:
         self.page = page
         self.operator_management = OperatorManagementDialog(app_state, operator_selector, page)
         self.copy_button = self._create_copy_button()
-        self.manage_button = self._create_manage_button()
-    
+
     def _create_copy_button(self) -> ft.FilledButton:
         return ft.FilledButton(
             "Copiar al Portapapeles",
             icon=ft.Icons.CONTENT_COPY,
             on_click=self._copy_report,
             style=ButtonStyles.primary()
-        )
-    
-    def _create_manage_button(self) -> ft.OutlinedButton:
-        return ft.OutlinedButton(
-            "Gestionar operadores",
-            icon=ft.Icons.PEOPLE,
-            on_click=lambda e: self.operator_management.show(),
-            style=ButtonStyles.secondary(self.app_state.is_dark_theme)
         )
     
     def _copy_report(self, e):
@@ -414,5 +469,4 @@ class ActionButtons:
     
     def update_theme(self):
         """Actualiza los estilos según el tema."""
-        self.manage_button.style = ButtonStyles.secondary(self.app_state.is_dark_theme)
         self.operator_management.update_theme()
