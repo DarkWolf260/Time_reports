@@ -235,34 +235,47 @@ class OperatorManagementDialog:
     
     def show(self):
         """Muestra el diálogo."""
+        # Get dialog colors but filter out unsupported properties for AlertDialog
+        dialog_colors = ContainerStyles.dialog(self.app_state.is_dark_theme)
+        
+        # Only use supported AlertDialog properties
+        supported_props = {}
+        if 'bgcolor' in dialog_colors:
+            supported_props['bgcolor'] = dialog_colors['bgcolor']
+        
         self.dialog = ft.AlertDialog(
             modal=True,
             title=ft.Text(
                 "Gestión de Operadores",
                 style=TextStyles.subtitle(self.app_state.is_dark_theme)
             ),
-            content=ft.Column([
-                self.nombre_field,
-                self.cedula_field,
-                self.cargo_dropdown,
-                self.jerarquia_dropdown,
-                ft.Row([
-                    ft.ElevatedButton(
-                        "Añadir",
-                        on_click=self._agregar_operador,
-                        style=ButtonStyles.primary()
-                    )
-                ], alignment="center"),
-                ft.Divider(),
-                self.eliminar_dropdown,
-                ft.Row([
-                    ft.ElevatedButton(
-                        "Eliminar",
-                        on_click=self._eliminar_operador,
-                        style=ButtonStyles.danger()
-                    )
-                ], alignment="center")
-            ], tight=True, width=300, alignment="center", horizontal_alignment="center"),
+            content=ft.Container(
+                content=ft.Column([
+                    self.nombre_field,
+                    self.cedula_field,
+                    self.cargo_dropdown,
+                    self.jerarquia_dropdown,
+                    ft.Row([
+                        ft.ElevatedButton(
+                            "Añadir",
+                            on_click=self._agregar_operador,
+                            style=ButtonStyles.primary()
+                        )
+                    ], alignment="center"),
+                    ft.Divider(),
+                    self.eliminar_dropdown,
+                    ft.Row([
+                        ft.ElevatedButton(
+                            "Eliminar",
+                            on_click=self._eliminar_operador,
+                            style=ButtonStyles.danger()
+                        )
+                    ], alignment="center")
+                ], tight=True, width=300, alignment="center", horizontal_alignment="center"),
+                padding=20,
+                border_radius=12 if 'border_radius' in dialog_colors else 0,
+                bgcolor=dialog_colors.get('bgcolor')
+            ),
             actions=[
                 ft.ElevatedButton(
                     "Cerrar",
@@ -271,7 +284,7 @@ class OperatorManagementDialog:
                 )
             ],
             actions_alignment="center",
-            **ContainerStyles.dialog(self.app_state.is_dark_theme)
+            **supported_props
         )
         
         self.page.open(self.dialog)
@@ -326,6 +339,11 @@ class OperatorManagementDialog:
         nombres = self.app_state.operador_manager.obtener_nombres()
         self.eliminar_dropdown.options = [ft.dropdown.Option(nombre) for nombre in nombres]
         self.eliminar_dropdown.value = None
+        
+        # Aplicar estilos actualizados
+        dropdown_style = InputStyles.dropdown(self.app_state.is_dark_theme)
+        for key, value in dropdown_style.items():
+            setattr(self.eliminar_dropdown, key, value)
     
     def _cerrar_dialog(self, e):
         """Cierra el diálogo."""
