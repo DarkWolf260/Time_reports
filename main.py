@@ -69,7 +69,7 @@ class WeatherReportApp:
         # Layout principal
         main_column = ft.Column([
             # Botón de tema en la esquina superior derecha
-            # ft.Row([self.theme_button.button], alignment=ft.MainAxisAlignment.END),
+            ft.Row([self.theme_button.button], alignment=ft.MainAxisAlignment.END),
 
             # Contenedor del reporte
             self.report_display.container,
