@@ -6,7 +6,6 @@ Refactorizada con arquitectura limpia y componentes reutilizables.
 import flet as ft
 from models import AppState
 from ui_components import (
-from ui_components import (
     ReportDisplay, WeatherSelector, OperatorSelector, 
     ActionButtons, SettingsDialog
 )
@@ -45,16 +44,19 @@ class WeatherReportApp:
 
     def _build_appbar(self) -> ft.AppBar:
         """Construye el AppBar de la aplicación."""
+        is_dark = self.app_state.is_dark_theme
+        appbar_color = ContainerStyles.card(is_dark)['bgcolor']
+
         return ft.AppBar(
-            title=ft.Text("Reporte del tiempo"),
-            center_title=True,
-            bgcolor=Colors.PRIMARY,
+            title=ft.Text("REPORTE DEL TIEMPO"),
+            center_title=False,
+            bgcolor=appbar_color,
             actions=[
                 ft.PopupMenuButton(
                     items=[
                         ft.PopupMenuItem(
                             text="Cambiar Tema",
-                            icon=ThemeManager.get_theme_icon(not self.app_state.is_dark_theme),
+                            icon=ThemeManager.get_theme_icon(not is_dark),
                             on_click=self._toggle_theme_from_menu
                         ),
                         ft.PopupMenuItem(
@@ -136,30 +138,34 @@ class WeatherReportApp:
     
     def _update_theme(self):
         """Actualiza el tema de todos los componentes."""
+        is_dark = self.app_state.is_dark_theme
+        
         self.report_display.update_theme()
         self.weather_selector.update_theme()
         self.operator_selector.update_theme()
         self.action_buttons.update_theme()
         self.settings_dialog.update_theme()
         
-        # Reconstruir el appbar para actualizar su icono y color
-        self.page.appbar = self._build_appbar()
+        if self.page.appbar:
+            self.page.appbar.bgcolor = ContainerStyles.card(is_dark)['bgcolor']
+            theme_menu_item = self.page.appbar.actions[0].items[0]
+            theme_menu_item.icon = ThemeManager.get_theme_icon(not is_dark)
 
-        container_style = ContainerStyles.card(self.app_state.is_dark_theme)
+        container_style = ContainerStyles.card(is_dark)
         for key, value in container_style.items():
             setattr(self.data_container, key, value)
         
-        self.data_container.content.controls[0].style = TextStyles.subtitle(self.app_state.is_dark_theme)
-        self.credits.style = TextStyles.caption(self.app_state.is_dark_theme)
-        self.page.bgcolor = ThemeManager.get_page_bgcolor(self.app_state.is_dark_theme)
+        self.data_container.content.controls[0].style = TextStyles.subtitle(is_dark)
+        self.credits.style = TextStyles.caption(is_dark)
+        self.page.bgcolor = ThemeManager.get_page_bgcolor(is_dark)
     
     def _on_data_change(self):
-        """Maneja los cambios en los datos (tiempo u operador).""" 
+        """Maneja los cambios en los datos (tiempo u operador)."""
         self.report_display.update_report()
         self.page.update()
     
     def _initial_update(self):
-        """Realiza la actualización inicial de la interfaz.""" 
+        """Realiza la actualización inicial de la interfaz."""
         self.report_display.update_report()
         self.page.update()
 
