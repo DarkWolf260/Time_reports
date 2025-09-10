@@ -4,7 +4,6 @@ Configuración y constantes de la aplicación de reportes meteorológicos.
 """
 
 # Configuración de la aplicación
-DEPARTAMENTO = "CEMUPRAD"
 OPERADORES_FILE = "operadores.json"
 USER_CONFIG_FILE = "user_config.json"
 
@@ -48,13 +47,15 @@ NOMBRES_TIEMPO = [
 ]
 
 # Cargos y jerarquías
-CARGOS = [
-    f"Analista {DEPARTAMENTO}",
-    f"Auxiliar de {DEPARTAMENTO}",
-    f"Coordinador de {DEPARTAMENTO}",
-    "Jefe de los servicios",
-    "Operador de radio"
-]
+def get_cargos(departamento: str) -> list[str]:
+    """Genera la lista de cargos dinámicamente."""
+    return [
+        f"Analista {departamento}",
+        f"Auxiliar de {departamento}",
+        f"Coordinador de {departamento}",
+        "Jefe de los servicios",
+        "Operador de radio"
+    ]
 
 JERARQUIAS = [
     "OPC", "OPC I", "OPC II", "OPC III",

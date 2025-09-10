@@ -10,7 +10,7 @@ from styles import (
     TextStyles, ButtonStyles, ContainerStyles, InputStyles, 
     Colors, ThemeManager
 )
-from config import EMOJI_TIEMPO, NOMBRES_TIEMPO, CARGOS, JERARQUIAS
+from config import EMOJI_TIEMPO, NOMBRES_TIEMPO, get_cargos, JERARQUIAS
 
 class ReportDisplay:
     """Componente para mostrar el reporte generado."""
@@ -162,29 +162,30 @@ class OperatorManagementDialog:
         
         self.nombre_field = ft.TextField(
             label="Nombre",
-            width=250,
+            width=300,
             hint_text="Nombre del operador",
             **style
         )
         
         self.cedula_field = ft.TextField(
             label="Cédula",
-            width=250,
+            width=300,
             hint_text="Cédula",
             **style
         )
         
+        cargos = get_cargos(self.app_state.departamento)
         self.cargo_dropdown = ft.Dropdown(
             label="Cargo",
-            width=250,
-            options=[ft.dropdown.Option(cargo) for cargo in CARGOS],
-            value=CARGOS[0],
+            width=300,
+            options=[ft.dropdown.Option(cargo) for cargo in cargos],
+            value=cargos[0],
             **InputStyles.dropdown(self.app_state.is_dark_theme)
         )
         
         self.jerarquia_dropdown = ft.Dropdown(
             label="Jerarquía",
-            width=250,
+            width=300,
             options=[ft.dropdown.Option(j) for j in JERARQUIAS],
             value=JERARQUIAS[0],
             **InputStyles.dropdown(self.app_state.is_dark_theme)
@@ -192,7 +193,7 @@ class OperatorManagementDialog:
         
         self.eliminar_dropdown = ft.Dropdown(
             label="Eliminar operador",
-            width=250,
+            width=300,
             options=[
                 ft.dropdown.Option(nombre) 
                 for nombre in self.app_state.operador_manager.obtener_nombres()
@@ -231,6 +232,14 @@ class OperatorManagementDialog:
 
     def show(self):
         """Muestra el diálogo."""
+        # Actualiza las opciones de cargo dinámicamente cada vez que se muestra el diálogo.
+        # Esto asegura que si el departamento cambió en los Ajustes, se refleje aquí.
+        cargos = get_cargos(self.app_state.departamento)
+        self.cargo_dropdown.options = [ft.dropdown.Option(cargo) for cargo in cargos]
+        # Asegurarse de que el valor seleccionado sea válido
+        if self.cargo_dropdown.value not in cargos:
+            self.cargo_dropdown.value = cargos[0]
+
         # Actualizar tema antes de mostrar
         self.update_theme()
 
@@ -347,9 +356,10 @@ class OperatorManagementDialog:
 class SettingsDialog:
     """Diálogo para configurar el departamento y municipio."""
 
-    def __init__(self, app_state: AppState, page: ft.Page):
+    def __init__(self, app_state: AppState, page: ft.Page, on_save: Callable):
         self.app_state = app_state
         self.page = page
+        self.on_save = on_save
         self.dialog = None
         self.municipalities = self._load_municipalities()
         self._create_form_fields()
@@ -368,12 +378,14 @@ class SettingsDialog:
         self.departamento_field = ft.TextField(
             label="Departamento",
             value=self.app_state.departamento,
+            width=300,
             **InputStyles.textfield(self.app_state.is_dark_theme)
         )
         self.municipio_dropdown = ft.Dropdown(
             label="Municipio",
             options=[ft.dropdown.Option(m) for m in self.municipalities],
             value=self.app_state.municipio,
+            width=300,
             **InputStyles.dropdown(self.app_state.is_dark_theme)
         )
 
@@ -409,7 +421,7 @@ class SettingsDialog:
             content=ft.Column([
                 self.departamento_field,
                 self.municipio_dropdown
-            ], tight=True, width=300),
+            ], tight=True, width=300, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
             actions=[
                 ft.ElevatedButton("Guardar", on_click=self._save_settings),
                 ft.ElevatedButton("Cerrar", on_click=self._close_dialog)
@@ -427,6 +439,9 @@ class SettingsDialog:
         self.app_state.departamento = self.departamento_field.value or "PROTECCIÓN CIVIL"
         self.app_state.municipio = self.municipio_dropdown.value or "Guanta"
         self.app_state.guardar_configuracion()
+
+        # Llama al callback para actualizar la UI principal
+        self.on_save()
 
         self._show_snackbar("Ajustes guardados", Colors.SUCCESS)
         self._close_dialog(e)
