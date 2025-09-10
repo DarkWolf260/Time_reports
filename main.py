@@ -40,8 +40,8 @@ class WeatherReportApp:
         self.weather_selector = WeatherSelector(self.app_state, self._on_data_change)
         self.operator_selector = OperatorSelector(self.app_state, self._on_data_change)
         self.action_buttons = ActionButtons(self.app_state, self.operator_selector, self.page)
-        self.settings_dialog = SettingsDialog(self.app_state, self.page)
-
+        self.settings_dialog = SettingsDialog(self.app_state, self.page, on_save=self._on_data_change)
+        
     def _build_appbar(self) -> ft.AppBar:
         """Construye el AppBar de la aplicación."""
         is_dark = self.app_state.is_dark_theme
@@ -175,3 +175,4 @@ def main(page: ft.Page):
 
 if __name__ == "__main__":
     ft.app(target=main)
+
