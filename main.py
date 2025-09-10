@@ -7,7 +7,7 @@ import flet as ft
 from models import AppState
 from ui_components import (
     ReportDisplay, WeatherSelector, OperatorSelector,
-    ActionButtons, SettingsDialog, ThemeToggleButton
+    ActionButtons, SettingsDialog
 )
 from styles import ThemeManager, TextStyles, ContainerStyles, Colors
 from config import WINDOW_CONFIG
@@ -36,7 +36,7 @@ class WeatherReportApp:
     
     def _create_components(self):
         """Crea los componentes de la interfaz."""
-        self.theme_button = ThemeToggleButton(self.app_state, self._on_theme_change)
+        # self.theme_button = ThemeToggleButton(self.app_state, self._on_theme_change)
         self.report_display = ReportDisplay(self.app_state)
         self.weather_selector = WeatherSelector(self.app_state, self._on_data_change)
         self.operator_selector = OperatorSelector(self.app_state, self._on_data_change)
@@ -69,7 +69,7 @@ class WeatherReportApp:
         # Layout principal
         main_column = ft.Column([
             # Botón de tema en la esquina superior derecha
-            ft.Row([self.theme_button.button], alignment=ft.MainAxisAlignment.END),
+            # ft.Row([self.theme_button.button], alignment=ft.MainAxisAlignment.END),
 
             # Contenedor del reporte
             self.report_display.container,
