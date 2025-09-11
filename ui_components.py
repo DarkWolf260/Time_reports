@@ -29,7 +29,7 @@ class CustomAppBar:
         return ft.AppBar(
             title=ft.Text(
                 WINDOW_CONFIG["title"],
-                style=TextStyles.title(is_dark)
+                style=TextStyles.subtitle(is_dark)
             ),
             bgcolor=ContainerStyles.card(is_dark)["bgcolor"],
             actions=[
@@ -60,7 +60,7 @@ class CustomAppBar:
         is_dark = self.app_state.is_dark_theme
 
         # Actualizar título
-        self.app_bar.title.style = TextStyles.title(is_dark)
+        self.app_bar.title.style = TextStyles.subtitle(is_dark)
 
         # Actualizar color de fondo
         self.app_bar.bgcolor = ContainerStyles.card(is_dark)["bgcolor"]
