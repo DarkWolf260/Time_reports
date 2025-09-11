@@ -1,5 +1,7 @@
 # Time Reports - Aplicación de Reportes Meteorológicos
 
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg) ![Flet](https://img.shields.io/badge/Flet-0.24.0%2B-green.svg) ![License](https://img.shields.io/badge/License-Uso%20Interno-red.svg) ![Maintained](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
+
 Una aplicación moderna y elegante creada con Flet para generar reportes del estado del tiempo de Protección Civil del Municipio Guanta.
 
 ## 🚀 Características
@@ -11,17 +13,29 @@ Una aplicación moderna y elegante creada con Flet para generar reportes del est
 - **Copia rápida**: Un clic para copiar el reporte al portapapeles
 - **Arquitectura limpia**: Código bien estructurado y mantenible
 
+## 🌟 Futuras Mejoras
+
+- [ ] **Exportar a PDF**: Opción para exportar el reporte en formato PDF.
+- [ ] **Estadísticas**: Un panel con estadísticas sobre los reportes generados.
+- [ ] **Multi-idioma**: Soporte para cambiar el idioma de la interfaz.
+- [ ] **Notificaciones**: Alertas de escritorio para eventos importantes.
+
 ## 📁 Estructura del Proyecto
 
 ```
 time_reports/
-├── config.py              # Configuración y constantes
-├── models.py               # Lógica de datos y modelos
-├── styles.py               # Estilos y temas
-├── ui_components.py        # Componentes de UI reutilizables
-├── main.py                # Aplicación principal
-├── operadores.json         # Base de datos de operadores (generado automáticamente)
-└── README.md              # Documentación
+├── src/
+│   ├── assets/              # Iconos y otros recursos
+│   ├── config.py            # Configuración y constantes
+│   ├── main.py              # Aplicación principal
+│   ├── models.py            # Lógica de datos y modelos
+│   ├── styles.py            # Estilos y temas
+│   └── ui_components.py     # Componentes de UI reutilizables
+├── storage/
+│   ├── municipios.json      # Lista de municipios
+│   └── operadores.json      # Base de datos de operadores
+├── README.md                # Documentación
+└── pyproject.toml           # Configuración del proyecto
 ```
 
 ## 🛠️ Instalación
@@ -35,7 +49,7 @@ time_reports/
 
 3. **Ejecutar la aplicación**:
    ```bash
-   python main.py
+   python src/main.py
    ```
 
 ## 📱 Uso de la Aplicación
