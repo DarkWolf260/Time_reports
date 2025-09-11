@@ -528,7 +528,7 @@ class ActionButtons:
         """Crea el botón para gestionar operadores."""
         return ft.ElevatedButton(
             "Gestionar Operadores",
-            icon=ft.icons.MANAGE_ACCOUNTS,
+            icon=ft.Icons.MANAGE_ACCOUNTS,
             on_click=lambda _: self.operator_management.show(),
             style=ButtonStyles.secondary(self.app_state.is_dark_theme)
         )

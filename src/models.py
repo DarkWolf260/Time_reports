@@ -146,7 +146,7 @@ class ReportGenerator:
         
         # Generar reporte
         reporte = (
-            f"*{departamento.upper()} MUNICIPIO {municipio.upper()}* 🚨\n\n"
+            f"*PROTECCIÓN CIVIL MUNICIPIO {municipio.upper()}* 🚨\n\n"
             f"*·   REPORTE DEL ESTADO DEL TIEMPO:* {EMOJI_TIEMPO[indice_tiempo]}\n"
             f"*·   FECHA:* {fecha_actual}\n"
             f"*·   HORA:* {hora_actual} HLV\n\n"

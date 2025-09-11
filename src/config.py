@@ -10,7 +10,7 @@ DEPARTAMENTO = "CEMUPRAD"
 
 # Configuración de la ventana
 WINDOW_CONFIG = {
-    "width": 600,
+    "width": 500,
     "height": 900,
     "resizable": False,
     "maximizable": False,
@@ -51,7 +51,7 @@ NOMBRES_TIEMPO = [
 def get_cargos(departamento: str) -> list[str]:
     """Genera la lista de cargos dinámicamente."""
     return [
-        f"Analista {departamento}",
+        f"Analista de {departamento}",
         f"Auxiliar de {departamento}",
         f"Coordinador de {departamento}",
         "Jefe de los servicios",
