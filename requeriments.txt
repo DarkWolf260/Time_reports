@@ -2,7 +2,7 @@
 # Dependencias para la aplicación de reportes meteorológicos
 
 # Framework principal
-flet>=0.24.0
+flet>=0.28.3
 
 # Dependencias adicionales para desarrollo (opcional)
 # pytest>=7.0.0  # Para pruebas unitarias
