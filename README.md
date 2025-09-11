@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg) ![Flet](https://img.shields.io/badge/Flet-0.24.0%2B-green.svg) ![License](https://img.shields.io/badge/License-Uso%20Interno-red.svg) ![Maintained](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
 
-Una aplicación moderna y elegante creada con Flet para generar reportes del estado del tiempo de Protección Civil del Municipio Guanta.
+Una aplicación moderna y elegante creada con Flet para generar reportes del estado del tiempo de Protección Civil Municipales.
 
 ## 🚀 Características
 
@@ -15,10 +15,7 @@ Una aplicación moderna y elegante creada con Flet para generar reportes del est
 
 ## 🌟 Futuras Mejoras
 
-- [ ] **Exportar a PDF**: Opción para exportar el reporte en formato PDF.
-- [ ] **Estadísticas**: Un panel con estadísticas sobre los reportes generados.
-- [ ] **Multi-idioma**: Soporte para cambiar el idioma de la interfaz.
-- [ ] **Notificaciones**: Alertas de escritorio para eventos importantes.
+- [ ] **Notificaciones**: Alertas de escritorio para que no olvides los reportes.
 
 ## 📁 Estructura del Proyecto
 
@@ -178,7 +175,7 @@ Todas las configuraciones se encuentran en `config.py`:
 
 ## 📄 Licencia
 
-Este proyecto está bajo una licencia de uso interno para Protección Civil Municipio Guanta.
+Este proyecto está bajo una licencia de uso interno.
 
 ## 🆕 Mejoras en la Refactorización
 
