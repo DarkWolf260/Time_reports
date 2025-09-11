@@ -31,7 +31,7 @@ class CustomAppBar:
                 WINDOW_CONFIG["title"],
                 style=TextStyles.title(is_dark)
             ),
-            bgcolor=ThemeManager.get_page_bgcolor(is_dark),
+            bgcolor=ContainerStyles.card(is_dark)["bgcolor"],
             actions=[
                 ft.PopupMenuButton(
                     items=[
@@ -42,12 +42,12 @@ class CustomAppBar:
                         ),
                         ft.PopupMenuItem(
                             text="Gestionar Operadores",
-                            icon=ft.icons.MANAGE_ACCOUNTS,
+                            icon=ft.Icons.MANAGE_ACCOUNTS,
                             on_click=lambda _: self.on_manage_operators()
                         ),
                         ft.PopupMenuItem(
                             text="Ajustes Generales",
-                            icon=ft.icons.SETTINGS,
+                            icon=ft.Icons.SETTINGS,
                             on_click=lambda _: self.on_show_settings()
                         )
                     ]
@@ -60,10 +60,10 @@ class CustomAppBar:
         is_dark = self.app_state.is_dark_theme
 
         # Actualizar título
-        self.app_bar.title.style = TextStyles.subtitle(is_dark)
+        self.app_bar.title.style = TextStyles.title(is_dark)
 
         # Actualizar color de fondo
-        self.app_bar.bgcolor = ThemeManager.get_page_bgcolor(is_dark)
+        self.app_bar.bgcolor = ContainerStyles.card(is_dark)["bgcolor"]
 
         # Actualizar ícono del tema en el menú
         theme_item = self.app_bar.actions[0].items[0]
@@ -292,10 +292,11 @@ class OperatorManagementDialog:
         # Actualiza las opciones de cargo dinámicamente cada vez que se muestra el diálogo.
         # Esto asegura que si el departamento cambió en los Ajustes, se refleje aquí.
         cargos = get_cargos(self.app_state.departamento)
-        self.cargo_dropdown.options = [ft.dropdown.Option(cargo) for cargo in cargos]
+        self.cargo_dropdown.options.clear()
+        self.cargo_dropdown.options.extend([ft.dropdown.Option(cargo) for cargo in cargos])
         # Asegurarse de que el valor seleccionado sea válido
         if self.cargo_dropdown.value not in cargos:
-            self.cargo_dropdown.value = cargos[0]
+            self.cargo_dropdown.value = cargos[0] if cargos else None
 
         # Actualizar tema antes de mostrar
         self.update_theme()

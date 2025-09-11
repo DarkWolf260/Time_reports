@@ -1,50 +1,8 @@
 [
     {
         "nombre": "Rubén Rojas",
-        "cargo": "Analista del departamento de CEMUPRAD",
+        "cargo": "Analista CEMUPRAD",
         "jerarquia": "OPC I",
-        "cedula": "V-28.702.026"
-    },
-    {
-        "nombre": "Jesús Acosta",
-        "cargo": "Analista del departamento de CEMUPRAD",
-        "jerarquia": "OPC",
-        "cedula": "V-29.733.586"
-    },
-    {
-        "nombre": "Gehosmel Rodríguez",
-        "cargo": "Analista del departamento de CEMUPRAD",
-        "jerarquia": "OPC",
-        "cedula": "V-29.733.218"
-    },
-    {
-        "nombre": "Andrea Vásquez",
-        "cargo": "Analista del departamento de CEMUPRAD",
-        "jerarquia": "OPC",
-        "cedula": "V-29.663.568"
-    },
-    {
-        "nombre": "Eudy Paraguatey",
-        "cargo": "Analista del departamento de CEMUPRAD",
-        "jerarquia": "OPC III",
-        "cedula": "V-25.589.819"
-    },
-    {
-        "nombre": "Ray Paraguatey",
-        "cargo": "Analista del departamento de CEMUPRAD",
-        "jerarquia": "OPC III",
-        "cedula": "V-26.072.179"
-    },
-    {
-        "nombre": "Leomarys Guaregua",
-        "cargo": "Analista del departamento de CEMUPRAD",
-        "jerarquia": "OPC III",
-        "cedula": "V-25.257.561"
-    },
-    {
-        "nombre": "Jesús Colón",
-        "cargo": "Coordinador del departamento de CEMUPRAD",
-        "jerarquia": "OPC III",
-        "cedula": "V-17.733.324"
+        "cedula": "12345678"
     }
 ]
