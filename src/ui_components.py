@@ -425,7 +425,7 @@ class SettingsDialog:
     def _load_municipalities(self) -> List[str]:
         """Carga la lista de municipios desde el archivo JSON."""
         try:
-            with open("municipios.json", "r", encoding="utf-8") as f:
+            with open("storage/municipios.json", "r", encoding="utf-8") as f:
                 return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError) as e:
             print(f"Error al cargar municipios.json: {e}")

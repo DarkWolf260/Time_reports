@@ -1,0 +1,10 @@
+[project]
+name = "weather_report_app"
+version = "2.0.0"
+description = "A simple weather report generator application."
+dependencies = [
+    "flet>=0.24.0",
+]
+
+[project.scripts]
+start = "src.main:main"
