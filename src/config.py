@@ -4,8 +4,8 @@ Configuración y constantes de la aplicación de reportes meteorológicos.
 """
 
 # Configuración de la aplicación
-OPERADORES_FILE = "operadores.json"
-USER_CONFIG_FILE = "user_config.json"
+OPERADORES_FILE = "storage/operadores.json"
+USER_CONFIG_FILE = "storage/user_config.json"
 DEPARTAMENTO = "CEMUPRAD"
 
 # Configuración de la ventana

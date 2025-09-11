@@ -1,0 +1,32 @@
+[project]
+name = "Reporte del tiempo"
+version = "2.0.0"
+description = "Una simple aplicación para generar reportes del tiempo."
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    { name = "Rubén Rojas", email = "rr@example.com" }
+]
+dependencies = [
+  "flet==0.28.3"
+]
+
+[tool.flet]
+org = "com.cemprad"
+product = "Reporte del Tiempo"
+company = "CEMUPRAD"
+copyright = "Copyright (C) 2025 Rubén Rojas"
+
+[tool.flet.app]
+path = "src/main.py"
+
+[tool.uv]
+dev-dependencies = [
+    "flet[all]==0.28.3",
+]
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.group.dev.dependencies]
+flet = {extras = ["all"], version = "0.28.3"}
