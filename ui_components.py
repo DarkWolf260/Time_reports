@@ -10,7 +10,64 @@ from styles import (
     TextStyles, ButtonStyles, ContainerStyles, InputStyles, 
     Colors, ThemeManager
 )
-from config import EMOJI_TIEMPO, NOMBRES_TIEMPO, get_cargos, JERARQUIAS
+from config import EMOJI_TIEMPO, NOMBRES_TIEMPO, get_cargos, JERARQUIAS, WINDOW_CONFIG
+
+class CustomAppBar:
+    """AppBar personalizada con título y menú de opciones."""
+
+    def __init__(self, app_state: AppState, on_theme_change: Callable, on_manage_operators: Callable, on_show_settings: Callable):
+        self.app_state = app_state
+        self.on_theme_change = on_theme_change
+        self.on_manage_operators = on_manage_operators
+        self.on_show_settings = on_show_settings
+        self.app_bar = self._create_app_bar()
+
+    def _create_app_bar(self) -> ft.AppBar:
+        """Crea el widget AppBar."""
+        is_dark = self.app_state.is_dark_theme
+
+        return ft.AppBar(
+            title=ft.Text(
+                WINDOW_CONFIG["title"],
+                style=TextStyles.title(is_dark)
+            ),
+            bgcolor=ThemeManager.get_page_bgcolor(is_dark),
+            actions=[
+                ft.PopupMenuButton(
+                    items=[
+                        ft.PopupMenuItem(
+                            text="Cambiar Tema",
+                            icon=ThemeManager.get_theme_icon(is_dark),
+                            on_click=lambda _: self.on_theme_change()
+                        ),
+                        ft.PopupMenuItem(
+                            text="Gestionar Operadores",
+                            icon=ft.icons.MANAGE_ACCOUNTS,
+                            on_click=lambda _: self.on_manage_operators()
+                        ),
+                        ft.PopupMenuItem(
+                            text="Ajustes Generales",
+                            icon=ft.icons.SETTINGS,
+                            on_click=lambda _: self.on_show_settings()
+                        )
+                    ]
+                )
+            ]
+        )
+
+    def update_theme(self):
+        """Actualiza el tema del AppBar."""
+        is_dark = self.app_state.is_dark_theme
+
+        # Actualizar título
+        self.app_bar.title.style = TextStyles.subtitle(is_dark)
+
+        # Actualizar color de fondo
+        self.app_bar.bgcolor = ThemeManager.get_page_bgcolor(is_dark)
+
+        # Actualizar ícono del tema en el menú
+        theme_item = self.app_bar.actions[0].items[0]
+        theme_item.icon = ThemeManager.get_theme_icon(is_dark)
 
 class ReportDisplay:
     """Componente para mostrar el reporte generado."""

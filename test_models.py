@@ -173,7 +173,7 @@ class TestReportGenerator(unittest.TestCase):
         mock_time.now().strftime.return_value = "14:30"
         mock_datetime.datetime = mock_time
         
-        reporte = ReportGenerator.generar_reporte(0, self.operador)
+        reporte = ReportGenerator.generar_reporte(0, self.operador, "Guanta", "PROTECCIÓN CIVIL")
         
         # Verificar contenido del reporte
         self.assertIn("PROTECCIÓN CIVIL MUNICIPIO GUANTA", reporte)
@@ -185,17 +185,17 @@ class TestReportGenerator(unittest.TestCase):
     
     def test_generar_reporte_sin_operador(self):
         """Prueba generación de reporte sin operador."""
-        reporte = ReportGenerator.generar_reporte(0, None)
+        reporte = ReportGenerator.generar_reporte(0, None, "Guanta", "PROTECCIÓN CIVIL")
         self.assertIn("(Sin operador)", reporte)
     
     def test_generar_reporte_indice_invalido(self):
         """Prueba generación con índice de tiempo inválido."""
         # Índice negativo
-        reporte = ReportGenerator.generar_reporte(-1, self.operador)
+        reporte = ReportGenerator.generar_reporte(-1, self.operador, "Guanta", "PROTECCIÓN CIVIL")
         self.assertIn("Cielo despejado", reporte)  # Debe usar índice 0
         
         # Índice muy alto
-        reporte = ReportGenerator.generar_reporte(999, self.operador)
+        reporte = ReportGenerator.generar_reporte(999, self.operador, "Guanta", "PROTECCIÓN CIVIL")
         self.assertIn("Cielo despejado", reporte)  # Debe usar índice 0
     
     def test_markdown_a_textspan(self):

@@ -6,15 +6,15 @@ Refactorizada con arquitectura limpia y componentes reutilizables.
 import flet as ft
 from models import AppState
 from ui_components import (
-    ReportDisplay, WeatherSelector, OperatorSelector,
-    ActionButtons, SettingsDialog
+    CustomAppBar, ReportDisplay, WeatherSelector, OperatorSelector,
+    ActionButtons, SettingsDialog, OperatorManagementDialog
 )
 from styles import ThemeManager, TextStyles, ContainerStyles, Colors
-from config import WINDOW_CONFIG
+from config import WINDOW_CONFIG, get_cargos
 
 class WeatherReportApp:
     """Aplicación principal de reportes meteorológicos."""
-    
+
     def __init__(self, page: ft.Page):
         self.page = page
         self.app_state = AppState()
@@ -23,7 +23,7 @@ class WeatherReportApp:
         self._build_ui()
         self._load_saved_theme()
         self._initial_update()
-    
+
     def _setup_page(self):
         """Configura las propiedades básicas de la página."""
         self.page.title = WINDOW_CONFIG["title"]
@@ -33,131 +33,116 @@ class WeatherReportApp:
         self.page.window.maximizable = WINDOW_CONFIG["maximizable"]
         self.page.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    
+
     def _create_components(self):
         """Crea los componentes de la interfaz."""
-        # self.theme_button = ThemeToggleButton(self.app_state, self._on_theme_change)
-        self.report_display = ReportDisplay(self.app_state)
         self.weather_selector = WeatherSelector(self.app_state, self._on_data_change)
         self.operator_selector = OperatorSelector(self.app_state, self._on_data_change)
+        self.operator_management = OperatorManagementDialog(self.app_state, self.operator_selector, self.page)
+        self.settings_dialog = SettingsDialog(self.app_state, self.page, self._on_settings_save)
+
+        self.app_bar = CustomAppBar(
+            self.app_state,
+            self._on_theme_toggle,
+            self.operator_management.show,
+            self.settings_dialog.show
+        )
+        self.page.appbar = self.app_bar.app_bar
+
+        self.report_display = ReportDisplay(self.app_state)
         self.action_buttons = ActionButtons(self.app_state, self.operator_selector, self.page)
 
     def _build_ui(self):
         """Construye la interfaz de usuario."""
-        # Contenedor de datos del reporte
         data_container = ft.Container(
             ft.Column([
-                ft.Text(
-                    "Datos del reporte",
-                    style=TextStyles.subtitle(self.app_state.is_dark_theme)
-                ),
+                ft.Text("Datos del reporte", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
                 self.weather_selector.dropdown,
                 self.operator_selector.dropdown,
-                self.action_buttons.manage_button
             ], alignment="center", horizontal_alignment="center", spacing=12),
             **ContainerStyles.card(self.app_state.is_dark_theme),
             width=500,
             alignment=ft.alignment.center
         )
-        
-        # Créditos
-        credits = ft.Text(
-            "Creado por: Rubén Rojas",
-            style=TextStyles.caption(self.app_state.is_dark_theme)
-        )
-        
-        # Layout principal
+
+        credits = ft.Text("Creado por: Rubén Rojas", style=TextStyles.caption(self.app_state.is_dark_theme))
+
         main_column = ft.Column([
-            # Botón de tema en la esquina superior derecha
-            ft.Row([self.theme_button.button], alignment=ft.MainAxisAlignment.END),
-
-            # Contenedor del reporte
             self.report_display.container,
-
-            # Contenedor de datos
             data_container,
-
-            # Botón de copiar
             ft.Row([self.action_buttons.copy_button], alignment=ft.MainAxisAlignment.CENTER),
-
-            # Créditos
             ft.Row([credits], alignment=ft.MainAxisAlignment.CENTER)
-        ], 
-        expand=True, 
-        alignment=ft.MainAxisAlignment.CENTER, 
-        horizontal_alignment=ft.CrossAxisAlignment.CENTER, 
+        ],
+        expand=True,
+        alignment=ft.MainAxisAlignment.CENTER,
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         spacing=18)
-        
+
         self.page.add(main_column)
-        
-        # Guardar referencia al contenedor de datos para actualizar tema
+
         self.data_container = data_container
         self.credits = credits
-    
+
     def _load_saved_theme(self):
         """Carga el tema guardado en el almacenamiento del cliente."""
         saved_theme = self.page.client_storage.get("theme")
         if saved_theme == "dark":
             self.app_state.is_dark_theme = True
-            self.page.theme_mode = ft.ThemeMode.DARK
         else:
             self.app_state.is_dark_theme = False
-            self.page.theme_mode = ft.ThemeMode.LIGHT
 
-        self._update_theme()
+        self._apply_theme()
 
-    def _on_theme_change(self):
-        """Maneja el cambio de tema."""
-        # Cambiar modo de tema de la página
-        if self.app_state.is_dark_theme:
-            self.page.theme_mode = ft.ThemeMode.DARK
-        else:
-            self.page.theme_mode = ft.ThemeMode.LIGHT
-        
-        # Guardar preferencia
+    def _on_theme_toggle(self):
+        """Cambia el tema de la aplicación."""
+        self.app_state.is_dark_theme = not self.app_state.is_dark_theme
         theme_value = "dark" if self.app_state.is_dark_theme else "light"
         self.page.client_storage.set("theme", theme_value)
-        
-        # Actualizar colores de fondo
+        self._apply_theme()
+        self.page.update()
+
+    def _apply_theme(self):
+        """Aplica el tema actual a todos los componentes."""
+        self.page.theme_mode = ft.ThemeMode.DARK if self.app_state.is_dark_theme else ft.ThemeMode.LIGHT
         self.page.bgcolor = ThemeManager.get_page_bgcolor(self.app_state.is_dark_theme)
 
-        # Actualizar tema de todos los componentes
-        self._update_theme()
+        self._update_themed_components()
 
-        # Actualizar página
-        self.page.update()
-    
-    def _update_theme(self):
-        """Actualiza el tema de todos los componentes."""
-        # Actualizar componentes
+    def _update_themed_components(self):
+        """Actualiza el tema de todos los componentes personalizados."""
+        if hasattr(self, 'app_bar'):
+            self.app_bar.update_theme()
         self.report_display.update_theme()
         self.weather_selector.update_theme()
         self.operator_selector.update_theme()
         self.action_buttons.update_theme()
-        
-        # Actualizar contenedor de datos
+        self.settings_dialog.update_theme()
+        self.operator_management.update_theme()
+
         container_style = ContainerStyles.card(self.app_state.is_dark_theme)
         for key, value in container_style.items():
             setattr(self.data_container, key, value)
-        
-        # Actualizar título del contenedor de datos
-        self.data_container.content.controls[0].style = TextStyles.subtitle(self.app_state.is_dark_theme)
 
-        # Actualizar créditos
+        self.data_container.content.controls[0].style = TextStyles.subtitle(self.app_state.is_dark_theme)
         self.credits.style = TextStyles.caption(self.app_state.is_dark_theme)
 
-        # Actualizar fondo de la página
-        self.page.bgcolor = ThemeManager.get_page_bgcolor(self.app_state.is_dark_theme)
-    
-    def _on_data_change(self):
+    def _on_data_change(self, e=None):
         """Maneja los cambios en los datos (tiempo u operador)."""
         self.report_display.update_report()
         self.page.update()
-    
+
+    def _on_settings_save(self):
+        """Se ejecuta cuando se guardan los ajustes."""
+        self.report_display.update_report()
+        cargos = get_cargos(self.app_state.departamento)
+        self.operator_management.cargo_dropdown.options = [ft.dropdown.Option(c) for c in cargos]
+        if self.operator_management.cargo_dropdown.value not in cargos:
+            self.operator_management.cargo_dropdown.value = cargos[0] if cargos else None
+        self.page.update()
+
     def _initial_update(self):
         """Realiza la actualización inicial de la interfaz."""
-        self.report_display.update_report()
-        self.page.update()
+        self._on_data_change()
 
 def main(page: ft.Page):
     """Función principal de la aplicación."""
