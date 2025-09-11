@@ -464,6 +464,16 @@ class ActionButtons:
         self.page = page
         self.operator_management = OperatorManagementDialog(app_state, operator_selector, page)
         self.copy_button = self._create_copy_button()
+        self.manage_button = self._create_manage_button()
+
+    def _create_manage_button(self) -> ft.ElevatedButton:
+        """Crea el botón para gestionar operadores."""
+        return ft.ElevatedButton(
+            "Gestionar Operadores",
+            icon=ft.icons.MANAGE_ACCOUNTS,
+            on_click=lambda _: self.operator_management.show(),
+            style=ButtonStyles.secondary(self.app_state.is_dark_theme)
+        )
 
     def _create_copy_button(self) -> ft.FilledButton:
         return ft.FilledButton(
@@ -485,31 +495,4 @@ class ActionButtons:
     def update_theme(self):
         """Actualiza los estilos según el tema."""
         self.operator_management.update_theme()
-
-class ThemeToggleButton:
-    """Un botón para cambiar entre tema claro y oscuro."""
-
-    def __init__(self, app_state: AppState, on_change: Callable):
-        self.app_state = app_state
-        self.on_change = on_change
-        self.button = self._create_button()
-
-    def _create_button(self) -> ft.IconButton:
-        is_dark = self.app_state.is_dark_theme
-        return ft.IconButton(
-            icon=ThemeManager.get_theme_icon(is_dark),
-            tooltip=ThemeManager.get_theme_tooltip(is_dark),
-            on_click=self._toggle_theme,
-        )
-
-    def _toggle_theme(self, e):
-        """Cambia el estado del tema y notifica."""
-        self.app_state.is_dark_theme = not self.app_state.is_dark_theme
-        self.update_theme()
-        self.on_change()
-
-    def update_theme(self):
-        """Actualiza el ícono y tooltip del botón."""
-        is_dark = self.app_state.is_dark_theme
-        self.button.icon = ThemeManager.get_theme_icon(is_dark)
-        self.button.tooltip = ThemeManager.get_theme_tooltip(is_dark)
+        self.manage_button.style = ButtonStyles.secondary(self.app_state.is_dark_theme)
