@@ -445,8 +445,8 @@ class OperatorManagementDialog:
     
     def _show_snackbar(self, mensaje: str, color):
         """Muestra un snackbar con un mensaje."""
-        self.page.snack_bar = ft.SnackBar(ft.Text(mensaje, color=color))
-        self.page.snack_bar.open = True
+        snackbar = ft.SnackBar(ft.Text(mensaje, color=color))
+        self.page.open(snackbar)
         self.page.update()
 
 class SettingsDialog:
@@ -550,8 +550,8 @@ class SettingsDialog:
 
     def _show_snackbar(self, mensaje: str, color):
         """Muestra un snackbar con un mensaje."""
-        self.page.snack_bar = ft.SnackBar(ft.Text(mensaje, color=color))
-        self.page.snack_bar.open = True
+        snackbar = ft.SnackBar(ft.Text(mensaje, color=color))
+        self.page.open(snackbar)
         self.page.update()
 
 class ActionButtons:
@@ -586,8 +586,8 @@ class ActionButtons:
         reporte = self.app_state.generar_reporte_actual()
         self.page.set_clipboard(reporte)
         
-        snackbar = ft.SnackBar(ft.Text("¡Reporte copiado!", color=Colors.SUCCESS))
-        self.page.open(snackbar)
+        snackbar_copiado = ft.SnackBar(ft.Text("¡Reporte copiado!", color=Colors.SUCCESS))
+        self.page.open(snackbar_copiado)
         self.page.update()
     
     def update_theme(self):
