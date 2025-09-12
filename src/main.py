@@ -131,7 +131,7 @@ class WeatherReportApp:
     def _on_data_change(self, e=None):
         """Maneja los cambios en los datos (tiempo u operador)."""
         self.report_display.update_report()
-        self.page.update()
+        self.report_display.text_widget.update()
 
     def _on_settings_save(self):
         """Se ejecuta cuando se guardan los ajustes."""
