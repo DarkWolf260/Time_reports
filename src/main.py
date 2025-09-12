@@ -12,7 +12,7 @@ from ui_components import (
     ActionButtons, SettingsDialog, OperatorManagementDialog
 )
 from styles import ThemeManager, TextStyles, ContainerStyles, Colors
-from config import WINDOW_CONFIG, get_cargos, OPERADORES_FILE
+from config import WINDOW_CONFIG, get_cargos, OPERADORES_FILE, MUNICIPIOS
 
 class WeatherReportApp:
     """Aplicación principal de reportes meteorológicos."""
@@ -158,11 +158,7 @@ def main(page: ft.Page):
                 page.client_storage.set("operators", json.dumps(operators_data))
 
     if not page.client_storage.contains_key("municipalities"):
-        municipios_path = "storage/municipios.json"
-        if os.path.exists(municipios_path):
-            with open(municipios_path, "r", encoding="utf-8") as f:
-                municipios_data = json.load(f)
-                page.client_storage.set("municipalities", json.dumps(municipios_data))
+        page.client_storage.set("municipalities", json.dumps(MUNICIPIOS))
 
     app = WeatherReportApp(page)
 
