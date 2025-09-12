@@ -136,10 +136,6 @@ class WeatherReportApp:
     def _on_settings_save(self):
         """Se ejecuta cuando se guardan los ajustes."""
         self.report_display.update_report()
-        cargos = get_cargos(self.app_state.departamento)
-        self.operator_management.cargo_dropdown.options = [ft.dropdown.Option(c) for c in cargos]
-        if self.operator_management.cargo_dropdown.value not in cargos:
-            self.operator_management.cargo_dropdown.value = cargos[0] if cargos else None
         self.page.update()
 
     def _initial_update(self):
