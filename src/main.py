@@ -5,13 +5,13 @@ Refactorizada con arquitectura limpia y componentes reutilizables.
 """
 import flet as ft
 import json
-from src.models import AppState
-from src.ui_components import (
+from .models import AppState
+from .ui_components import (
     CustomAppBar, ReportDisplay, WeatherSelector, OperatorSelector,
     ActionButtons, SettingsDialog, OperatorManagementDialog
 )
-from src.styles import ThemeManager, TextStyles, ContainerStyles, Colors
-from src.config import WINDOW_CONFIG, get_cargos, MUNICIPIOS, DEFAULT_OPERATORS
+from .styles import ThemeManager, TextStyles, ContainerStyles, Colors
+from .config import WINDOW_CONFIG, get_cargos, MUNICIPIOS, DEFAULT_OPERATORS
 
 class WeatherReportApp:
     """Aplicación principal de reportes meteorológicos."""
@@ -159,4 +159,4 @@ def main(page: ft.Page):
     app = WeatherReportApp(page)
 
 if __name__ == "__main__":
-    ft.app(target=main, assets_dir="assets")
+    ft.app(target=main, assets_dir="src/assets")
