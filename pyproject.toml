@@ -14,7 +14,7 @@ dependencies = [
 [tool.flet]
 org = "com.cemprad"
 product = "Reporte del Tiempo"
-company = "CEMUPRAD"
+company = "Rubén Rojas"
 copyright = "Copyright (C) 2025 Rubén Rojas"
 
 [tool.flet.app]

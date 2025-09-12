@@ -8,7 +8,7 @@ import datetime
 import re
 from typing import List, Dict, Optional
 from dataclasses import dataclass
-from .config import TIEMPO, EMOJI_TIEMPO, DEPARTAMENTO
+from config import TIEMPO, EMOJI_TIEMPO, DEPARTAMENTO
 
 @dataclass
 class Operador:
@@ -164,7 +164,7 @@ class ReportGenerator:
     def markdown_a_textspan(texto: str):
         """Convierte texto markdown simple (*texto*) a TextSpans de Flet."""
         import flet as ft
-        from .styles import Colors, FONT_FAMILY
+        from styles import Colors, FONT_FAMILY
         
         patron = r'(\*.*?\*)|([^\*]+)'
         spans = []

@@ -3,7 +3,7 @@
 Estilos y temas de la aplicación.
 """
 import flet as ft
-from .config import FONT_FAMILY, BORDER_RADIUS
+from config import FONT_FAMILY, BORDER_RADIUS
 
 class Colors:
     """Paleta de colores de la aplicación."""
