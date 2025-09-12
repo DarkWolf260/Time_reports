@@ -8,7 +8,7 @@ import datetime
 import re
 from typing import List, Dict, Optional
 from dataclasses import dataclass
-from config import OPERADORES_FILE, TIEMPO, EMOJI_TIEMPO, USER_CONFIG_FILE, DEPARTAMENTO
+from config import OPERADORES_FILE, TIEMPO, EMOJI_TIEMPO, DEPARTAMENTO
 
 @dataclass
 class Operador:
