@@ -39,13 +39,12 @@ class WeatherReportApp:
         """Crea los componentes de la interfaz."""
         self.weather_selector = WeatherSelector(self.app_state, self._on_data_change)
         self.operator_selector = OperatorSelector(self.app_state, self._on_data_change)
-        self.operator_management = OperatorManagementDialog(self.app_state, self.operator_selector, self.page)
         self.settings_dialog = SettingsDialog(self.app_state, self.page, self._on_settings_save)
 
         self.app_bar = CustomAppBar(
             self.app_state,
             self._on_theme_toggle,
-            self.operator_management.show,
+            self._show_operator_management_dialog,
             self.settings_dialog.show
         )
         self.page.appbar = self.app_bar.app_bar
@@ -119,7 +118,6 @@ class WeatherReportApp:
         self.operator_selector.update_theme()
         self.action_buttons.update_theme()
         self.settings_dialog.update_theme()
-        self.operator_management.update_theme()
 
         container_style = ContainerStyles.card(self.app_state.is_dark_theme)
         for key, value in container_style.items():
@@ -131,12 +129,21 @@ class WeatherReportApp:
     def _on_data_change(self, e=None):
         """Maneja los cambios en los datos (tiempo u operador)."""
         self.report_display.update_report()
-        self.report_display.text_widget.update()
+        self.page.update()
 
     def _on_settings_save(self):
         """Se ejecuta cuando se guardan los ajustes."""
         self.report_display.update_report()
         self.page.update()
+
+    def _show_operator_management_dialog(self, e=None):
+        """Crea y muestra un nuevo diálogo de gestión de operadores."""
+        dialog = OperatorManagementDialog(
+            app_state=self.app_state,
+            operator_selector=self.operator_selector,
+            page=self.page
+        )
+        dialog.show()
 
     def _initial_update(self):
         """Realiza la actualización inicial de la interfaz."""
