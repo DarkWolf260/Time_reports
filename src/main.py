@@ -12,7 +12,7 @@ from ui_components import (
     ActionButtons, SettingsDialog, OperatorManagementDialog
 )
 from styles import ThemeManager, TextStyles, ContainerStyles, Colors
-from config import WINDOW_CONFIG, get_cargos, OPERADORES_FILE, MUNICIPIOS
+from config import WINDOW_CONFIG, get_cargos, MUNICIPIOS, DEFAULT_OPERATORS
 
 class WeatherReportApp:
     """Aplicación principal de reportes meteorológicos."""
@@ -165,10 +165,7 @@ def main(page: ft.Page):
         os.rename(USER_CONFIG_FILE, f"{USER_CONFIG_FILE}.migrated")
 
     if not page.client_storage.contains_key("operators"):
-        if os.path.exists(OPERADORES_FILE):
-            with open(OPERADORES_FILE, "r", encoding="utf-8") as f:
-                operators_data = json.load(f)
-                page.client_storage.set("operators", json.dumps(operators_data))
+        page.client_storage.set("operators", json.dumps(DEFAULT_OPERATORS))
 
     if not page.client_storage.contains_key("municipalities"):
         page.client_storage.set("municipalities", json.dumps(MUNICIPIOS))
