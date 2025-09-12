@@ -424,13 +424,15 @@ class SettingsDialog:
         self._create_form_fields()
 
     def _load_municipalities(self) -> List[str]:
-        """Carga la lista de municipios desde el archivo JSON."""
+        """Carga la lista de municipios desde el almacenamiento del cliente."""
         try:
-            with open("storage/municipios.json", "r", encoding="utf-8") as f:
-                return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError) as e:
-            print(f"Error al cargar municipios.json: {e}")
-            return ["Guanta"] # Valor de respaldo
+            municipalities_str = self.page.client_storage.get("municipalities")
+            if municipalities_str:
+                return json.loads(municipalities_str)
+        except (json.JSONDecodeError) as e:
+            print(f"Error al cargar municipios desde client_storage: {e}")
+
+        return ["Guanta"] # Valor de respaldo
 
     def _create_form_fields(self):
         """Crea los campos del formulario de ajustes."""

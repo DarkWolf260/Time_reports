@@ -4,20 +4,22 @@ Aplicación principal para generar reportes meteorológicos.
 Refactorizada con arquitectura limpia y componentes reutilizables.
 """
 import flet as ft
+import os
+import json
 from models import AppState
 from ui_components import (
     CustomAppBar, ReportDisplay, WeatherSelector, OperatorSelector,
     ActionButtons, SettingsDialog, OperatorManagementDialog
 )
 from styles import ThemeManager, TextStyles, ContainerStyles, Colors
-from config import WINDOW_CONFIG, get_cargos
+from config import WINDOW_CONFIG, get_cargos, OPERADORES_FILE
 
 class WeatherReportApp:
     """Aplicación principal de reportes meteorológicos."""
 
     def __init__(self, page: ft.Page):
         self.page = page
-        self.app_state = AppState()
+        self.app_state = AppState(page=page)
         self._setup_page()
         self._create_components()
         self._build_ui()
@@ -146,6 +148,21 @@ class WeatherReportApp:
 
 def main(page: ft.Page):
     """Función principal de la aplicación."""
+
+    # Migración inicial de datos si es necesario
+    if not page.client_storage.contains_key("operators"):
+        if os.path.exists(OPERADORES_FILE):
+            with open(OPERADORES_FILE, "r", encoding="utf-8") as f:
+                operators_data = json.load(f)
+                page.client_storage.set("operators", json.dumps(operators_data))
+
+    if not page.client_storage.contains_key("municipalities"):
+        municipios_path = "storage/municipios.json"
+        if os.path.exists(municipios_path):
+            with open(municipios_path, "r", encoding="utf-8") as f:
+                municipios_data = json.load(f)
+                page.client_storage.set("municipalities", json.dumps(municipios_data))
+
     app = WeatherReportApp(page)
 
 if __name__ == "__main__":

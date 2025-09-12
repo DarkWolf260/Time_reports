@@ -36,29 +36,31 @@ class Operador:
 class OperadorManager:
     """Gestor para manejar operadores."""
     
-    def __init__(self):
+    def __init__(self, page=None):
+        self.page = page
         self._operadores: List[Operador] = []
         self.cargar_operadores()
-    
+
     def cargar_operadores(self) -> None:
-        """Carga los operadores desde el archivo JSON."""
-        if os.path.exists(OPERADORES_FILE):
+        """Carga los operadores desde el almacenamiento del cliente."""
+        if self.page and self.page.client_storage:
             try:
-                with open(OPERADORES_FILE, "r", encoding="utf-8") as f:
-                    data = json.load(f)
+                data_str = self.page.client_storage.get("operators")
+                if data_str:
+                    data = json.loads(data_str)
                     self._operadores = [Operador.from_dict(op) for op in data]
             except (json.JSONDecodeError, KeyError, TypeError) as e:
-                print(f"Error cargando operadores: {e}")
+                print(f"Error cargando operadores desde client_storage: {e}")
                 self._operadores = []
-    
+
     def guardar_operadores(self) -> None:
-        """Guarda los operadores en el archivo JSON."""
-        try:
-            with open(OPERADORES_FILE, "w", encoding="utf-8") as f:
+        """Guarda los operadores en el almacenamiento del cliente."""
+        if self.page and self.page.client_storage:
+            try:
                 data = [op.to_dict() for op in self._operadores]
-                json.dump(data, f, ensure_ascii=False, indent=4)
-        except IOError as e:
-            print(f"Error guardando operadores: {e}")
+                self.page.client_storage.set("operators", json.dumps(data))
+            except Exception as e:
+                print(f"Error guardando operadores en client_storage: {e}")
     
     def agregar_operador(self, nombre: str, cargo: str, jerarquia: str, cedula: str) -> bool:
         """Agrega un nuevo operador."""
@@ -196,8 +198,9 @@ class ReportGenerator:
 class AppState:
     """Estado global de la aplicación."""
     
-    def __init__(self):
-        self.operador_manager = OperadorManager()
+    def __init__(self, page=None):
+        self.page = page
+        self.operador_manager = OperadorManager(page=self.page)
         self.indice_tiempo = 0
         self.indice_operador = 0
         self.is_dark_theme = False
