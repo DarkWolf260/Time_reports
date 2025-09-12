@@ -78,7 +78,8 @@ class WeatherReportApp:
         expand=True,
         alignment=ft.MainAxisAlignment.CENTER,
         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-        spacing=18)
+        spacing=18,
+        scroll=ft.ScrollMode.ADAPTIVE)
 
         self.page.add(main_column)
 
