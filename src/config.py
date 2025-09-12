@@ -64,6 +64,15 @@ JERARQUIAS = [
     "OCPC I", "OCPC II"
 ]
 
+# Municipios
+MUNICIPIOS = [
+    "Anaco", "Aragua", "Bolívar", "Bruzual", "Carvajal", "Cajigal",
+    "Diego Bautista Urbaneja", "Freites", "Guanta", "Guanipa",
+    "Independencia", "Libertad", "McGregor", "Miranda", "Monagas",
+    "Peñalver", "Píritu", "San Juan de Capistrano", "Santa Ana",
+    "Simón Rodríguez", "Sotillo"
+]
+
 # Configuración de estilos
 FONT_FAMILY = "Segoe UI"
 BORDER_RADIUS = {

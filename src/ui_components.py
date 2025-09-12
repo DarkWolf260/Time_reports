@@ -310,28 +310,35 @@ class OperatorManagementDialog:
                 "Gestión de Operadores",
                 style=TextStyles.subtitle(self.app_state.is_dark_theme)
             ),
-            content=ft.Column([
-                self.nombre_field,
-                self.cedula_field,
-                self.cargo_dropdown,
-                self.jerarquia_dropdown,
-                ft.Row([
-                    ft.ElevatedButton(
-                        "Añadir",
-                        on_click=self._agregar_operador,
-                        style=ButtonStyles.primary()
-                    )
-                ], alignment="center"),
-                ft.Divider(),
-                self.eliminar_dropdown,
-                ft.Row([
-                    ft.ElevatedButton(
-                        "Eliminar",
-                        on_click=self._eliminar_operador,
-                        style=ButtonStyles.danger()
-                    )
-                ], alignment="center")
-            ], tight=True, width=300, alignment="center", horizontal_alignment="center"),
+            content=ft.Container(
+                width=300,
+                height=400, # Altura fija para el contenedor
+                content=ft.Column([
+                    self.nombre_field,
+                    self.cedula_field,
+                    self.cargo_dropdown,
+                    self.jerarquia_dropdown,
+                    ft.Row([
+                        ft.ElevatedButton(
+                            "Añadir",
+                            on_click=self._agregar_operador,
+                            style=ButtonStyles.primary()
+                        )
+                    ], alignment="center"),
+                    ft.Divider(),
+                    self.eliminar_dropdown,
+                    ft.Row([
+                        ft.ElevatedButton(
+                            "Eliminar",
+                            on_click=self._eliminar_operador,
+                            style=ButtonStyles.danger()
+                        )
+                    ], alignment="center")
+                ],
+                scroll=ft.ScrollMode.ADAPTIVE,
+                spacing=10
+                )
+            ),
             actions=[
                 ft.ElevatedButton(
                     "Cerrar",
