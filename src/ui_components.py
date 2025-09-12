@@ -323,8 +323,7 @@ class OperatorManagementDialog:
         # Actualiza las opciones de cargo dinámicamente cada vez que se muestra el diálogo.
         # Esto asegura que si el departamento cambió en los Ajustes, se refleje aquí.
         cargos = get_cargos(self.app_state.departamento)
-        self.cargo_dropdown.options.clear()
-        self.cargo_dropdown.options.extend([ft.dropdown.Option(cargo) for cargo in cargos])
+        self.cargo_dropdown.options = [ft.dropdown.Option(cargo) for cargo in cargos]
         # Asegurarse de que el valor seleccionado sea válido
         if self.cargo_dropdown.value not in cargos:
             self.cargo_dropdown.value = cargos[0] if cargos else None
