@@ -213,6 +213,33 @@ class OperatorManagementDialog:
         self.page = page
         self.dialog = None
         self._create_form_fields()
+
+    def _format_cedula(self, e):
+        """Formatea la cédula mientras el usuario escribe."""
+        control = e.control
+
+        # Limpiar el valor para obtener solo los dígitos
+        digits = "".join(filter(str.isdigit, control.value))
+
+        # Limitar a 8 dígitos (máximo para cédulas en Venezuela)
+        if len(digits) > 8:
+            digits = digits[:8]
+
+        # Formatear los dígitos con puntos
+        if len(digits) > 5:
+            formatted_digits = f"{digits[:-6]}.{digits[-6:-3]}.{digits[-3:]}"
+        elif len(digits) > 2:
+            formatted_digits = f"{digits[:-3]}.{digits[-3:]}"
+        else:
+            formatted_digits = digits
+
+        # Construir el valor final con el prefijo "V-"
+        new_value = f"V-{formatted_digits}" if digits else "V-"
+
+        # Actualizar el control solo si el valor ha cambiado para evitar bucles
+        if control.value != new_value:
+            control.value = new_value
+            control.update()
     
     def _create_form_fields(self):
         """Crea los campos del formulario."""
@@ -229,6 +256,9 @@ class OperatorManagementDialog:
             label="Cédula",
             width=300,
             hint_text="Cédula",
+            value="V-",
+            on_change=self._format_cedula,
+            input_filter=ft.InputFilter(r"[0-9]"),
             **style
         )
         
