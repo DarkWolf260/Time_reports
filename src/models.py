@@ -209,29 +209,16 @@ class AppState:
         self.cargar_configuracion()
 
     def cargar_configuracion(self):
-        """Carga la configuración del usuario desde un archivo JSON."""
-        try:
-            if os.path.exists(USER_CONFIG_FILE):
-                with open(USER_CONFIG_FILE, "r", encoding="utf-8") as f:
-                    config = json.load(f)
-                    self.is_dark_theme = config.get("is_dark_theme", self.is_dark_theme)
-                    self.departamento = config.get("departamento", self.departamento)
-                    self.municipio = config.get("municipio", self.municipio)
-        except (json.JSONDecodeError, IOError) as e:
-            print(f"Error al cargar la configuración: {e}")
+        """Carga la configuración del usuario desde el almacenamiento del cliente."""
+        if self.page and self.page.client_storage:
+            self.departamento = self.page.client_storage.get("departamento") or self.departamento
+            self.municipio = self.page.client_storage.get("municipio") or self.municipio
 
     def guardar_configuracion(self):
-        """Guarda la configuración actual del usuario en un archivo JSON."""
-        config = {
-            "is_dark_theme": self.is_dark_theme,
-            "departamento": self.departamento,
-            "municipio": self.municipio
-        }
-        try:
-            with open(USER_CONFIG_FILE, "w", encoding="utf-8") as f:
-                json.dump(config, f, ensure_ascii=False, indent=4)
-        except IOError as e:
-            print(f"Error al guardar la configuración: {e}")
+        """Guarda la configuración actual del usuario en el almacenamiento del cliente."""
+        if self.page and self.page.client_storage:
+            self.page.client_storage.set("departamento", self.departamento)
+            self.page.client_storage.set("municipio", self.municipio)
 
     def obtener_operador_actual(self) -> Optional[Operador]:
         """Obtiene el operador actualmente seleccionado."""
