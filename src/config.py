@@ -75,7 +75,7 @@ JERARQUIAS = [
 # Municipios
 MUNICIPIOS = [
     "Anaco", "Aragua", "Bolívar", "Bruzual", "Carvajal", "Cajigal",
-    "Diego Bautista Urbaneja", "Freites", "Guanta", "Guanipa",
+    "Urbaneja", "Freites", "Guanta", "Guanipa",
     "Independencia", "Libertad", "McGregor", "Miranda", "Monagas",
     "Peñalver", "Píritu", "San Juan de Capistrano", "Santa Ana",
     "Simón Rodríguez", "Sotillo"

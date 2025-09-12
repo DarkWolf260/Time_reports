@@ -27,7 +27,7 @@ class CustomAppBar:
         is_dark = self.app_state.is_dark_theme
 
         return ft.AppBar(
-            leading=ft.Image(src="icon.png", width=30, height=30),
+            leading=ft.Image(src=f"icon.png", width=30, height=30),
             title=ft.Text(
                 WINDOW_CONFIG["title"],
                 style=TextStyles.subtitle(is_dark)
