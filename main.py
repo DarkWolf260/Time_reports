@@ -4,15 +4,14 @@ Aplicación principal para generar reportes meteorológicos.
 Refactorizada con arquitectura limpia y componentes reutilizables.
 """
 import flet as ft
-import os
 import json
-from models import AppState
-from ui_components import (
+from src.models import AppState
+from src.ui_components import (
     CustomAppBar, ReportDisplay, WeatherSelector, OperatorSelector,
     ActionButtons, SettingsDialog, OperatorManagementDialog
 )
-from styles import ThemeManager, TextStyles, ContainerStyles, Colors
-from config import WINDOW_CONFIG, get_cargos, MUNICIPIOS, DEFAULT_OPERATORS
+from src.styles import ThemeManager, TextStyles, ContainerStyles, Colors
+from src.config import WINDOW_CONFIG, get_cargos, MUNICIPIOS, DEFAULT_OPERATORS
 
 class WeatherReportApp:
     """Aplicación principal de reportes meteorológicos."""
@@ -150,20 +149,7 @@ class WeatherReportApp:
 def main(page: ft.Page):
     """Función principal de la aplicación."""
 
-    # Migración inicial de datos si es necesario
-    USER_CONFIG_FILE = "storage/user_config.json"
-    if os.path.exists(USER_CONFIG_FILE):
-        with open(USER_CONFIG_FILE, "r", encoding="utf-8") as f:
-            config = json.load(f)
-            if "is_dark_theme" in config:
-                theme = "dark" if config["is_dark_theme"] else "light"
-                page.client_storage.set("theme", theme)
-            if "departamento" in config:
-                page.client_storage.set("departamento", config["departamento"])
-            if "municipio" in config:
-                page.client_storage.set("municipio", config["municipio"])
-        os.rename(USER_CONFIG_FILE, f"{USER_CONFIG_FILE}.migrated")
-
+    # Inicialización de datos por defecto si no existen
     if not page.client_storage.contains_key("operators"):
         page.client_storage.set("operators", json.dumps(DEFAULT_OPERATORS))
 
