@@ -151,6 +151,19 @@ def main(page: ft.Page):
     """Función principal de la aplicación."""
 
     # Migración inicial de datos si es necesario
+    USER_CONFIG_FILE = "storage/user_config.json"
+    if os.path.exists(USER_CONFIG_FILE):
+        with open(USER_CONFIG_FILE, "r", encoding="utf-8") as f:
+            config = json.load(f)
+            if "is_dark_theme" in config:
+                theme = "dark" if config["is_dark_theme"] else "light"
+                page.client_storage.set("theme", theme)
+            if "departamento" in config:
+                page.client_storage.set("departamento", config["departamento"])
+            if "municipio" in config:
+                page.client_storage.set("municipio", config["municipio"])
+        os.rename(USER_CONFIG_FILE, f"{USER_CONFIG_FILE}.migrated")
+
     if not page.client_storage.contains_key("operators"):
         if os.path.exists(OPERADORES_FILE):
             with open(OPERADORES_FILE, "r", encoding="utf-8") as f:
