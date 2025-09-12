@@ -77,7 +77,7 @@ MUNICIPIOS = [
     "Anaco", "Aragua", "Bolívar", "Bruzual", "Carvajal", "Cajigal",
     "Urbaneja", "Freites", "Guanta", "Guanipa",
     "Independencia", "Libertad", "McGregor", "Miranda", "Monagas",
-    "Peñalver", "Píritu", "San Juan de Capistrano", "Santa Ana",
+    "Peñalver", "Píritu", "Capistrano", "Santa Ana",
     "Simón Rodríguez", "Sotillo"
 ]
 
