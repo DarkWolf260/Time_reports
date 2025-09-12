@@ -5,12 +5,12 @@ Componentes de interfaz de usuario reutilizables.
 import flet as ft
 import json
 from typing import Callable, Optional, List
-from models import AppState, Operador, ReportGenerator
-from styles import (
+from .models import AppState, Operador, ReportGenerator
+from .styles import (
     TextStyles, ButtonStyles, ContainerStyles, InputStyles, 
     Colors, ThemeManager
 )
-from config import EMOJI_TIEMPO, NOMBRES_TIEMPO, get_cargos, JERARQUIAS, WINDOW_CONFIG
+from .config import EMOJI_TIEMPO, NOMBRES_TIEMPO, get_cargos, JERARQUIAS, WINDOW_CONFIG
 
 class CustomAppBar:
     """AppBar personalizada con título y menú de opciones."""
@@ -27,7 +27,7 @@ class CustomAppBar:
         is_dark = self.app_state.is_dark_theme
 
         return ft.AppBar(
-            leading=ft.Image(src="assets/icon.png", width=30, height=30),
+            leading=ft.Image(src="icon.png", width=30, height=30),
             title=ft.Text(
                 WINDOW_CONFIG["title"],
                 style=TextStyles.subtitle(is_dark)
