@@ -8,7 +8,7 @@ import datetime
 import re
 from typing import List, Dict, Optional
 from dataclasses import dataclass
-from config import OPERADORES_FILE, TIEMPO, EMOJI_TIEMPO, DEPARTAMENTO
+from config import TIEMPO, EMOJI_TIEMPO, DEPARTAMENTO
 
 @dataclass
 class Operador:
@@ -207,6 +207,14 @@ class AppState:
         self.departamento = DEPARTAMENTO
         self.municipio = "Guanta"  # Valor por defecto
         self.cargar_configuracion()
+        self._set_default_operator()
+
+    def _set_default_operator(self):
+        """Establece el operador por defecto."""
+        default_operator_name = "Rubén Rojas"
+        default_operator_index = self.operador_manager.obtener_indice_por_nombre(default_operator_name)
+        if default_operator_index != -1:
+            self.indice_operador = default_operator_index
 
     def cargar_configuracion(self):
         """Carga la configuración del usuario desde el almacenamiento del cliente."""

@@ -4,8 +4,17 @@ Configuración y constantes de la aplicación de reportes meteorológicos.
 """
 
 # Configuración de la aplicación
-OPERADORES_FILE = "storage/operadores.json"
 DEPARTAMENTO = "CEMUPRAD"
+
+# Operadores por defecto
+DEFAULT_OPERATORS = [
+    {
+        "nombre": "Rubén Rojas",
+        "cargo": "Analista de CEMUPRAD",
+        "jerarquia": "OPC I",
+        "cedula": "V-28.702.206"
+    }
+]
 
 # Configuración de la ventana
 WINDOW_CONFIG = {
