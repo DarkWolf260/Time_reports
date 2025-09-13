@@ -42,7 +42,7 @@ class AlarmsTab(ft.Column):
         self.pick_time_button = ft.IconButton(
             icon=ft.icons.EDIT_CALENDAR_OUTLINED,
             tooltip="Seleccionar hora",
-            on_click=lambda _: self.time_picker.pick_time()
+            on_click=lambda _: self.page.open(self.time_picker)
         )
 
         self.alarm_type = ft.RadioGroup(content=ft.Row([
