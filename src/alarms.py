@@ -172,7 +172,10 @@ class AlarmsTab(ft.Column):
                 for key, value in card_style.items():
                     setattr(control, key, value)
 
-                if len(control.content.controls) > 1 and hasattr(control.content.controls[0], 'style'):
-                     control.content.controls[0].style = TextStyles.subtitle(self.app_state.is_dark_theme)
+                # Safely check if content has controls and update subtitle style
+                if hasattr(control.content, 'controls') and len(control.content.controls) > 0:
+                    subtitle = control.content.controls[0]
+                    if isinstance(subtitle, ft.Text):
+                        subtitle.style = TextStyles.subtitle(self.app_state.is_dark_theme)
 
         self.update()
