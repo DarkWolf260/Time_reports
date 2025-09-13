@@ -28,7 +28,7 @@ class AlarmsTab(ft.Column):
         self._active_alarms_lock = Lock()
 
         # Componentes de la UI
-        self.clock_text = ft.Text("", style=TextStyles.headline(self.app_state.is_dark_theme), text_align=ft.TextAlign.CENTER)
+        self.clock_text = ft.Text("", style=TextStyles.title(self.app_state.is_dark_theme), text_align=ft.TextAlign.CENTER)
         self.alarm_time_input = ft.TextField(label="Hora de alarma (HH:MM)", width=200)
         self.alarm_type = ft.RadioGroup(content=ft.Row([
             ft.Radio(value="sound", label="Sonido"),
@@ -165,7 +165,7 @@ class AlarmsTab(ft.Column):
             self.update()
 
     def update_theme(self):
-        self.clock_text.style = TextStyles.headline(self.app_state.is_dark_theme)
+        self.clock_text.style = TextStyles.title(self.app_state.is_dark_theme)
         for control in self.controls:
             if isinstance(control, ft.Container):
                 card_style = ContainerStyles.card(self.app_state.is_dark_theme)
