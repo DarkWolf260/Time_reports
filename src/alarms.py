@@ -43,7 +43,7 @@ class AlarmsTab(ft.Column):
         clock_container = ft.Container(
             content=self.clock_text,
             **ContainerStyles.card(self.app_state.is_dark_theme),
-            padding=20, width=300, alignment=ft.alignment.center
+            width=300, alignment=ft.alignment.center
         )
         alarm_settings_container = ft.Container(
             content=ft.Column([
@@ -51,7 +51,7 @@ class AlarmsTab(ft.Column):
                 self.alarm_time_input, self.alarm_type, self.add_alarm_button
             ], spacing=15, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
             **ContainerStyles.card(self.app_state.is_dark_theme),
-            padding=20, width=300, alignment=ft.alignment.center
+            width=300, alignment=ft.alignment.center
         )
         alarms_list_container = ft.Container(
             content=ft.Column([
@@ -59,7 +59,7 @@ class AlarmsTab(ft.Column):
                 self.alarms_list_view
             ], spacing=10, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
             **ContainerStyles.card(self.app_state.is_dark_theme),
-            padding=20, width=300, expand=True
+            width=300, expand=True
         )
 
         self.controls.extend([
