@@ -3,6 +3,7 @@
 
 # Framework principal
 flet>=0.28.3
+plyer>=2.1.0
 
 # Dependencias adicionales para desarrollo (opcional)
 # pytest>=7.0.0  # Para pruebas unitarias
