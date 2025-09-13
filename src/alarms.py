@@ -24,35 +24,60 @@ class AlarmsTab(ft.Column):
         )
 
         self.app_state = app_state
-        self.alarms = []  # Lista para almacenar las alarmas activas
+        self.alarms = []
         self._active_alarms_lock = Lock()
+        self.selected_alarm_time = None
 
-        # Componentes de la UI
+        # --- Componentes de la UI ---
         self.clock_text = ft.Text("", style=TextStyles.title(self.app_state.is_dark_theme), text_align=ft.TextAlign.CENTER)
-        self.alarm_time_input = ft.TextField(label="Hora de alarma (HH:MM)", width=200)
+
+        # TimePicker y sus controles asociados
+        self.time_picker = ft.TimePicker(
+            on_change=self.time_picker_changed,
+            confirm_text="Confirmar",
+            cancel_text="Cancelar",
+            help_text="Seleccione la hora para la alarma"
+        )
+        self.selected_time_text = ft.Text("HH:MM", size=20, weight=ft.FontWeight.BOLD)
+        self.pick_time_button = ft.IconButton(
+            icon=ft.icons.EDIT_CALENDAR_OUTLINED,
+            tooltip="Seleccionar hora",
+            on_click=lambda _: self.time_picker.pick_time()
+        )
+
         self.alarm_type = ft.RadioGroup(content=ft.Row([
             ft.Radio(value="sound", label="Sonido"),
             ft.Radio(value="notification", label="Notificación")
         ]), value="sound")
+
         self.add_alarm_button = ft.ElevatedButton(text="Añadir Alarma", on_click=self.add_alarm_clicked)
         self.alarms_list_view = ft.ListView(spacing=10, padding=20, auto_scroll=True)
-
         self.audio_player = ft.Audio(src="/assets/alarm.mp3", autoplay=False)
 
-        # Construir la UI directamente en init
+        # --- Construcción de la UI ---
         clock_container = ft.Container(
             content=self.clock_text,
             **ContainerStyles.card(self.app_state.is_dark_theme),
             width=300, alignment=ft.alignment.center
         )
+
+        time_selection_row = ft.Row([
+            ft.Text("Hora de la alarma:", size=16),
+            self.selected_time_text,
+            self.pick_time_button
+        ], alignment=ft.MainAxisAlignment.CENTER, spacing=10)
+
         alarm_settings_container = ft.Container(
             content=ft.Column([
                 ft.Text("Configurar Alarma", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
-                self.alarm_time_input, self.alarm_type, self.add_alarm_button
+                time_selection_row,
+                self.alarm_type,
+                self.add_alarm_button
             ], spacing=15, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
             **ContainerStyles.card(self.app_state.is_dark_theme),
             width=300, alignment=ft.alignment.center
         )
+
         alarms_list_container = ft.Container(
             content=ft.Column([
                 ft.Text("Alarmas Activas", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
@@ -69,8 +94,7 @@ class AlarmsTab(ft.Column):
         ])
 
     def did_mount(self):
-        self.page.overlay.append(self.audio_player)
-
+        self.page.overlay.extend([self.time_picker, self.audio_player])
         self.running = True
         self.page.run_thread(self.update_clock)
         self.page.run_thread(self.alarm_checker)
@@ -78,13 +102,18 @@ class AlarmsTab(ft.Column):
     def will_unmount(self):
         self.running = False
 
+    def time_picker_changed(self, e):
+        time_obj = datetime.datetime.strptime(e.data, "%I:%M %p").time()
+        self.selected_alarm_time = time_obj.strftime("%H:%M")
+        self.selected_time_text.value = self.selected_alarm_time
+        self.update()
+
     def update_clock(self):
         while self.running:
             utc_now = datetime.datetime.now(datetime.timezone.utc)
             hlv_time = utc_now - datetime.timedelta(hours=4)
             self.clock_text.value = f"{hlv_time.strftime('%H:%M:%S')} HLV"
-            if self.page:
-                self.update()
+            if self.page: self.update()
             time.sleep(1)
 
     def alarm_checker(self):
@@ -100,10 +129,10 @@ class AlarmsTab(ft.Column):
                         alarm["active"] = False
                         alarms_to_remove.append(alarm)
 
-            if alarms_to_remove:
-                self.update_alarms_list()
+            if alarms_to_remove: self.update_alarms_list()
 
-            time.sleep(20)
+            seconds_until_next_minute = 60 - datetime.datetime.now().second
+            time.sleep(seconds_until_next_minute)
 
     def trigger_alarm(self, alarm):
         if alarm["type"] == "sound":
@@ -118,33 +147,26 @@ class AlarmsTab(ft.Column):
                 )
             except Exception as e:
                 self.page.snack_bar = ft.SnackBar(ft.Text(f"Error al enviar notificación: {e}"), open=True)
-        if self.page:
-            self.page.update()
+        if self.page: self.page.update()
 
     def add_alarm_clicked(self, e):
-        time_str = self.alarm_time_input.value
-        alarm_type = self.alarm_type.value
-
-        try:
-            datetime.datetime.strptime(time_str, '%H:%M')
-        except ValueError:
-            self.page.snack_bar = ft.SnackBar(ft.Text("Formato de hora inválido. Use HH:MM."), open=True)
+        if not self.selected_alarm_time:
+            self.page.snack_bar = ft.SnackBar(ft.Text("Por favor, seleccione una hora para la alarma."), open=True)
             self.page.update()
             return
 
+        alarm_type = self.alarm_type.value
         with self._active_alarms_lock:
-            new_alarm = {"time": time_str, "type": alarm_type, "active": True}
+            new_alarm = {"time": self.selected_alarm_time, "type": alarm_type, "active": True}
             self.alarms.append(new_alarm)
 
         self.update_alarms_list()
-        self.alarm_time_input.value = ""
         self.page.update()
 
     def remove_alarm(self, alarm):
         with self._active_alarms_lock:
             self.alarms.remove(alarm)
         self.update_alarms_list()
-        self.page.update()
 
     def update_alarms_list(self):
         self.alarms_list_view.controls.clear()
@@ -154,15 +176,10 @@ class AlarmsTab(ft.Column):
                     ft.Row([
                         ft.Icon(ft.icons.ALARM),
                         ft.Text(f"{alarm['time']} ({'Sonido' if alarm['type'] == 'sound' else 'Notificación'})"),
-                        ft.IconButton(
-                            icon=ft.icons.DELETE,
-                            on_click=lambda e, a=alarm: self.remove_alarm(a),
-                            tooltip="Eliminar alarma"
-                        )
+                        ft.IconButton(icon=ft.icons.DELETE, on_click=lambda e, a=alarm: self.remove_alarm(a), tooltip="Eliminar alarma")
                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
                 )
-        if self.page:
-            self.update()
+        if self.page: self.update()
 
     def update_theme(self):
         self.clock_text.style = TextStyles.title(self.app_state.is_dark_theme)
@@ -172,10 +189,8 @@ class AlarmsTab(ft.Column):
                 for key, value in card_style.items():
                     setattr(control, key, value)
 
-                # Safely check if content has controls and update subtitle style
                 if hasattr(control.content, 'controls') and len(control.content.controls) > 0:
                     subtitle = control.content.controls[0]
                     if isinstance(subtitle, ft.Text):
                         subtitle.style = TextStyles.subtitle(self.app_state.is_dark_theme)
-
         self.update()
