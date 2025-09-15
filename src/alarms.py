@@ -174,9 +174,9 @@ class AlarmsTab(ft.Column):
             for alarm in self.alarms:
                 self.alarms_list_view.controls.append(
                     ft.Row([
-                        ft.Icon(ft.icons.ALARM),
+                        ft.Icon(ft.Icons.ALARM),
                         ft.Text(f"{alarm['time']} ({'Sonido' if alarm['type'] == 'sound' else 'Notificación'})"),
-                        ft.IconButton(icon=ft.icons.DELETE, on_click=lambda e, a=alarm: self.remove_alarm(a), tooltip="Eliminar alarma")
+                        ft.IconButton(icon=ft.Icons.DELETE, on_click=lambda e, a=alarm: self.remove_alarm(a), tooltip="Eliminar alarma")
                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
                 )
         if self.page: self.update()
