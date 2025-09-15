@@ -40,7 +40,7 @@ class AlarmsTab(ft.Column):
         )
         self.selected_time_text = ft.Text("HH:MM", size=20, weight=ft.FontWeight.BOLD)
         self.pick_time_button = ft.IconButton(
-            icon=ft.icons.EDIT_CALENDAR_OUTLINED,
+            icon=ft.Icons.EDIT_CALENDAR_OUTLINED,
             tooltip="Seleccionar hora",
             on_click=lambda _: self.page.open(self.time_picker)
         )
