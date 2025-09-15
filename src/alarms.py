@@ -103,7 +103,7 @@ class AlarmsTab(ft.Column):
         self.running = False
 
     def time_picker_changed(self, e):
-        time_obj = datetime.datetime.strptime(e.data, "%I:%M %p").time()
+        time_obj = datetime.datetime.strptime(e.data, "%H:%M").time()
         self.selected_alarm_time = time_obj.strftime("%H:%M")
         self.selected_time_text.value = self.selected_alarm_time
         self.update()
