@@ -1,5 +1,5 @@
 [project]
-name = "Reporte del tiempo"
+name = "Reporte-del-tiempo"
 version = "2.0.0"
 description = "Una simple aplicación para generar reportes del tiempo."
 readme = "README.md"
@@ -8,17 +8,21 @@ authors = [
     { name = "Rubén Rojas", email = "ruben.eduardo.uban@gmail.com" }
 ]
 dependencies = [
-  "flet==0.28.3"
+  "flet==0.28.3",
+  "plyer==2.1.0"
 ]
 
 [tool.flet]
-org = "com.cemprad"
+org = "com.darkwolf261"
 product = "Reporte del Tiempo"
 company = "Rubén Rojas"
 copyright = "Copyright (C) 2025 Rubén Rojas"
 
 [tool.flet.app]
-path = "src/main.py"
+path = "src"
+
+[tool.flet.android.permission]
+"android.permission.NOTIFICATIONS" = true
 
 [tool.uv]
 dev-dependencies = [
@@ -33,4 +37,7 @@ flet = {extras = ["all"], version = "0.28.3"}
 
 [tool.flet.flutter.pubspec.dependency_overrides]
 webview_flutter_android = "4.10.1"
+
+[tool.flet.flutter.dependencies]
+flet_audio = "2.0.0"
 
