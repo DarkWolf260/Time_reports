@@ -53,8 +53,7 @@ class AlarmsTab(ft.Column):
 
         self.add_alarm_button = ft.ElevatedButton(text="Añadir Alarma", on_click=self.add_alarm_clicked)
         self.alarms_list_view = ft.ListView(spacing=10, padding=20, auto_scroll=True)
-        self.audio_player = ft.Audio(src="alarm.mp3", autoplay=False)
-        self.notification_player = ft.Audio(src="notification.mp3", autoplay=False)
+        self.audio_player = ft.Audio(autoplay=False)
 
 
         # --- Construcción de la UI ---
@@ -97,7 +96,7 @@ class AlarmsTab(ft.Column):
         ])
 
     def did_mount(self):
-        self.page.overlay.extend([self.time_picker, self.audio_player, self.notification_player])
+        self.page.overlay.extend([self.time_picker, self.audio_player])
 
         # Cargar alarmas guardadas
         if self.page.client_storage.contains_key("alarms"):
@@ -154,10 +153,12 @@ class AlarmsTab(ft.Column):
 
     def trigger_alarm(self, alarm):
         if alarm["type"] == "sound":
+            self.audio_player.src = "alarm.mp3"
             self.audio_player.play()
             self.page.snack_bar = ft.SnackBar(ft.Text(f"Alarma de sonido a las {alarm['time']}!"), open=True)
         elif alarm["type"] == "notification":
-            self.notification_player.play()
+            self.audio_player.src = "notification.mp3"
+            self.audio_player.play()
             try:
                 plyer_notification.notify(
                     title='Alarma',
@@ -166,7 +167,9 @@ class AlarmsTab(ft.Column):
                 )
             except Exception as e:
                 self.page.snack_bar = ft.SnackBar(ft.Text(f"Error al enviar notificación: {e}"), open=True)
-        if self.page: self.page.update()
+        if self.page:
+            self.audio_player.update()
+            self.page.update()
 
     def add_alarm_clicked(self, e):
         if not self.selected_alarm_time:
