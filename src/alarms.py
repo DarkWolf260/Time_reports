@@ -41,7 +41,7 @@ class AlarmsTab(ft.Column):
         )
         self.selected_time_text = ft.Text("HH:MM", size=20, weight=ft.FontWeight.BOLD)
         self.pick_time_button = ft.IconButton(
-            icon=ft.icons.EDIT_CALENDAR_OUTLINED,
+            icon=ft.Icons.EDIT_CALENDAR_OUTLINED,
             tooltip="Seleccionar hora",
             on_click=lambda _: self.page.open(self.time_picker)
         )
@@ -192,9 +192,9 @@ class AlarmsTab(ft.Column):
             for alarm in self.alarms:
                 self.alarms_list_view.controls.append(
                     ft.Row([
-                        ft.Icon(ft.icons.ALARM),
+                        ft.Icon(ft.Icons.ALARM),
                         ft.Text(f"{alarm['time']} ({'Sonido' if alarm['type'] == 'sound' else 'Notificación'})"),
-                        ft.IconButton(icon=ft.icons.DELETE, on_click=lambda e, a=alarm: self.remove_alarm(a), tooltip="Eliminar alarma")
+                        ft.IconButton(icon=ft.Icons.DELETE, on_click=lambda e, a=alarm: self.remove_alarm(a), tooltip="Eliminar alarma")
                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
                 )
         if self.page: self.update()
