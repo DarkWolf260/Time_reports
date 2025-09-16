@@ -53,7 +53,9 @@ class AlarmsTab(ft.Column):
 
         self.add_alarm_button = ft.ElevatedButton(text="Añadir Alarma", on_click=self.add_alarm_clicked)
         self.alarms_list_view = ft.ListView(spacing=10, padding=20, auto_scroll=True)
-        self.audio_player = ft.Audio(src="/assets/alarm.mp3", autoplay=False)
+        self.audio_player = ft.Audio(src="alarm.mp3", autoplay=False)
+        self.notification_player = ft.Audio(src="notification.mp3", autoplay=False)
+
 
         # --- Construcción de la UI ---
         clock_container = ft.Container(
@@ -95,7 +97,7 @@ class AlarmsTab(ft.Column):
         ])
 
     def did_mount(self):
-        self.page.overlay.extend([self.time_picker, self.audio_player])
+        self.page.overlay.extend([self.time_picker, self.audio_player, self.notification_player])
 
         # Cargar alarmas guardadas
         if self.page.client_storage.contains_key("alarms"):
@@ -155,10 +157,11 @@ class AlarmsTab(ft.Column):
             self.audio_player.play()
             self.page.snack_bar = ft.SnackBar(ft.Text(f"Alarma de sonido a las {alarm['time']}!"), open=True)
         elif alarm["type"] == "notification":
+            self.notification_player.play()
             try:
                 plyer_notification.notify(
                     title='Alarma',
-                    message=f'Es hora de tu alarma programada a las {alarm["time"]}.',
+                    message=f"recuerda enviar el reporte de las {alarm['time']}",
                     app_name='Weather Report App'
                 )
             except Exception as e:
