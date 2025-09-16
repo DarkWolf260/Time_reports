@@ -9,7 +9,8 @@ authors = [
 ]
 dependencies = [
   "flet==0.28.3",
-  "plyer==2.1.0"
+  "plyer==2.1.0",
+  "flet-audio==0.1.0"
 ]
 
 [tool.flet]
@@ -37,7 +38,3 @@ flet = {extras = ["all"], version = "0.28.3"}
 
 [tool.flet.flutter.pubspec.dependency_overrides]
 webview_flutter_android = "4.10.1"
-
-[tool.flet.flutter.dependencies]
-flet_audio = "2.0.0"
-
