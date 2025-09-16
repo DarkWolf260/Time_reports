@@ -53,7 +53,7 @@ class AlarmsTab(ft.Column):
 
         self.add_alarm_button = ft.ElevatedButton(text="Añadir Alarma", on_click=self.add_alarm_clicked)
         self.alarms_list_view = ft.ListView(spacing=10, padding=20, auto_scroll=True)
-        self.audio_player = ft.Audio(autoplay=False)
+        self.audio_player = ft.Audio(src="alarm.mp3", autoplay=False)
 
 
         # --- Construcción de la UI ---
