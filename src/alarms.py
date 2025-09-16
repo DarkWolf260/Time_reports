@@ -162,8 +162,9 @@ class AlarmsTab(ft.Column):
             try:
                 plyer_notification.notify(
                     title='Alarma',
-                    message=f"recuerda enviar el reporte de las {alarm['time']}",
-                    app_name='Weather Report App'
+                    message=f"Recuerda enviar el reporte de las {alarm['time']}",
+                    app_name='Reporte del tiempo',
+                    app_icon='assets/icon.png'
                 )
             except Exception as e:
                 self.page.snack_bar = ft.SnackBar(ft.Text(f"Error al enviar notificación: {e}"), open=True)
