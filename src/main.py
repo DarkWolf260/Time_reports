@@ -12,7 +12,7 @@ from ui_components import (
 )
 from styles import ThemeManager, TextStyles, ContainerStyles, Colors
 from config import WINDOW_CONFIG, get_cargos, MUNICIPIOS, DEFAULT_OPERATORS
-from alarms import AlarmsTab
+from src.alarms import AlarmsTab
 
 class WeatherReportApp:
     """Aplicación principal de reportes meteorológicos."""
@@ -87,12 +87,12 @@ class WeatherReportApp:
             tabs=[
                 ft.Tab(
                     text="Reporte Meteorológico",
-                    icon=ft.Icons.CLOUD,
+                    icon=ft.icons.CLOUD,
                     content=report_tab_content,
                 ),
                 ft.Tab(
                     text="Alarmas",
-                    icon=ft.Icons.ALARM,
+                    icon=ft.icons.ALARM,
                     content=self.alarms_tab,
                 ),
             ],

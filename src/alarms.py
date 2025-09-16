@@ -8,6 +8,7 @@ from styles import TextStyles, ContainerStyles
 import time
 from threading import Thread, Lock
 import datetime
+import json
 from plyer import notification as plyer_notification
 
 class AlarmsTab(ft.Column):
@@ -31,16 +32,16 @@ class AlarmsTab(ft.Column):
         # --- Componentes de la UI ---
         self.clock_text = ft.Text("", style=TextStyles.title(self.app_state.is_dark_theme), text_align=ft.TextAlign.CENTER)
 
-        # TimePicker y sus controles asociados
         self.time_picker = ft.TimePicker(
             on_change=self.time_picker_changed,
             confirm_text="Confirmar",
             cancel_text="Cancelar",
-            help_text="Seleccione la hora para la alarma"
+            help_text="Seleccione la hora para la alarma",
+            time_picker_entry_mode=ft.TimePickerEntryMode.INPUT
         )
         self.selected_time_text = ft.Text("HH:MM", size=20, weight=ft.FontWeight.BOLD)
         self.pick_time_button = ft.IconButton(
-            icon=ft.Icons.EDIT_CALENDAR_OUTLINED,
+            icon=ft.icons.EDIT_CALENDAR_OUTLINED,
             tooltip="Seleccionar hora",
             on_click=lambda _: self.page.open(self.time_picker)
         )
@@ -95,12 +96,27 @@ class AlarmsTab(ft.Column):
 
     def did_mount(self):
         self.page.overlay.extend([self.time_picker, self.audio_player])
+
+        # Cargar alarmas guardadas
+        if self.page.client_storage.contains_key("alarms"):
+            try:
+                saved_alarms = json.loads(self.page.client_storage.get("alarms"))
+                if isinstance(saved_alarms, list):
+                    self.alarms = saved_alarms
+                    self.update_alarms_list()
+            except (json.JSONDecodeError, TypeError):
+                self.alarms = [] # Iniciar con lista vacía si hay error
+
         self.running = True
         self.page.run_thread(self.update_clock)
         self.page.run_thread(self.alarm_checker)
 
     def will_unmount(self):
         self.running = False
+
+    def _save_alarms(self):
+        """Guarda la lista de alarmas en el almacenamiento del cliente."""
+        self.page.client_storage.set("alarms", json.dumps(self.alarms))
 
     def time_picker_changed(self, e):
         time_obj = datetime.datetime.strptime(e.data, "%H:%M").time()
@@ -160,12 +176,14 @@ class AlarmsTab(ft.Column):
             new_alarm = {"time": self.selected_alarm_time, "type": alarm_type, "active": True}
             self.alarms.append(new_alarm)
 
+        self._save_alarms()
         self.update_alarms_list()
         self.page.update()
 
     def remove_alarm(self, alarm):
         with self._active_alarms_lock:
             self.alarms.remove(alarm)
+        self._save_alarms()
         self.update_alarms_list()
 
     def update_alarms_list(self):
@@ -174,9 +192,9 @@ class AlarmsTab(ft.Column):
             for alarm in self.alarms:
                 self.alarms_list_view.controls.append(
                     ft.Row([
-                        ft.Icon(ft.Icons.ALARM),
+                        ft.Icon(ft.icons.ALARM),
                         ft.Text(f"{alarm['time']} ({'Sonido' if alarm['type'] == 'sound' else 'Notificación'})"),
-                        ft.IconButton(icon=ft.Icons.DELETE, on_click=lambda e, a=alarm: self.remove_alarm(a), tooltip="Eliminar alarma")
+                        ft.IconButton(icon=ft.icons.DELETE, on_click=lambda e, a=alarm: self.remove_alarm(a), tooltip="Eliminar alarma")
                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
                 )
         if self.page: self.update()
