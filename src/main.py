@@ -12,6 +12,7 @@ from ui_components import (
 )
 from styles import ThemeManager, TextStyles, ContainerStyles, Colors
 from config import WINDOW_CONFIG, get_cargos, MUNICIPIOS, DEFAULT_OPERATORS
+from alarms import AlarmsTab
 
 class WeatherReportApp:
     """Aplicación principal de reportes meteorológicos."""
@@ -51,6 +52,7 @@ class WeatherReportApp:
 
         self.report_display = ReportDisplay(self.app_state)
         self.action_buttons = ActionButtons(self.app_state, self.operator_selector, self.page)
+        self.alarms_tab = AlarmsTab(self.app_state)
 
     def _build_ui(self):
         """Construye la interfaz de usuario."""
@@ -67,7 +69,7 @@ class WeatherReportApp:
 
         credits = ft.Text("Creado por: Rubén Rojas", style=TextStyles.caption(self.app_state.is_dark_theme))
 
-        main_column = ft.Column([
+        report_tab_content = ft.Column([
             self.report_display.container,
             data_container,
             ft.Row([self.action_buttons.copy_button], alignment=ft.MainAxisAlignment.CENTER),
@@ -79,7 +81,25 @@ class WeatherReportApp:
         spacing=18,
         scroll=ft.ScrollMode.ADAPTIVE)
 
-        self.page.add(main_column)
+        self.tabs = ft.Tabs(
+            selected_index=0,
+            animation_duration=300,
+            tabs=[
+                ft.Tab(
+                    text="Reporte Meteorológico",
+                    icon=ft.Icons.CLOUD,
+                    content=report_tab_content,
+                ),
+                ft.Tab(
+                    text="Alarmas",
+                    icon=ft.Icons.ALARM,
+                    content=self.alarms_tab,
+                ),
+            ],
+            expand=1,
+        )
+
+        self.page.add(self.tabs)
 
         self.data_container = data_container
         self.credits = credits
@@ -118,6 +138,7 @@ class WeatherReportApp:
         self.operator_selector.update_theme()
         self.action_buttons.update_theme()
         self.settings_dialog.update_theme()
+        self.alarms_tab.update_theme()
 
         container_style = ContainerStyles.card(self.app_state.is_dark_theme)
         for key, value in container_style.items():
@@ -162,4 +183,4 @@ def main(page: ft.Page):
     app = WeatherReportApp(page)
 
 if __name__ == "__main__":
-    ft.app(target=main, assets_dir="assets")
+    ft.app(target=main, assets_dir="src/assets")
