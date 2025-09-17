@@ -9,7 +9,7 @@ import time
 from threading import Thread, Lock
 import datetime
 import json
-from plyer import notification as plyer_notification
+from notifications import send_notification
 
 class AlarmsTab(ft.Column):
     """
@@ -54,6 +54,7 @@ class AlarmsTab(ft.Column):
         self.add_alarm_button = ft.ElevatedButton(text="Añadir Alarma", on_click=self.add_alarm_clicked)
         self.alarms_list_view = ft.ListView(spacing=10, padding=20, auto_scroll=True)
         self.audio_player = ft.Audio(src="assets/alarm.mp3", autoplay=False)
+        self.notification_status_text = ft.Text()
 
 
         # --- Construcción de la UI ---
@@ -74,7 +75,8 @@ class AlarmsTab(ft.Column):
                 ft.Text("Configurar Alarma", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
                 time_selection_row,
                 self.alarm_type,
-                self.add_alarm_button
+                self.add_alarm_button,
+                self.notification_status_text
             ], spacing=15, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
             **ContainerStyles.card(self.app_state.is_dark_theme),
             width=300, alignment=ft.alignment.center
@@ -159,17 +161,14 @@ class AlarmsTab(ft.Column):
         elif alarm["type"] == "notification":
             self.audio_player.src = "assets/notification.mp3"
             self.audio_player.play()
-            try:
-                plyer_notification.notify(
-                    title='Alarma',
-                    message=f"Recuerda enviar el reporte de las {alarm['time']}",
-                    app_name='Reporte del tiempo',
-                    app_icon='assets/icon.png'
-                )
-            except Exception as e:
-                self.page.snack_bar = ft.SnackBar(ft.Text(f"Error al enviar notificación: {e}"), open=True)
+            send_notification(
+                title='Alarma',
+                text=f"recuerda enviar el reporte de las {alarm['time']}",
+                status_text=self.notification_status_text
+            )
         if self.page:
             self.audio_player.update()
+            self.notification_status_text.update()
             self.page.update()
 
     def add_alarm_clicked(self, e):
