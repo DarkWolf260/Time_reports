@@ -76,3 +76,23 @@ def cancel_alarm(alarm_id: int):
         print(f"Cancelled alarm {alarm_id}")
     else:
         print(f"No alarm found with ID {alarm_id} to cancel.")
+
+def request_notification_permission():
+    """
+    Checks and requests the POST_NOTIFICATIONS permission at runtime if needed.
+    """
+    activity = get_activity()
+    if not activity:
+        return
+
+    Build = autoclass('android.os.Build')
+    if Build.VERSION.SDK_INT >= 33: # Android 13 (TIRAMISU)
+        ContextCompat = autoclass('androidx.core.content.ContextCompat')
+        ActivityCompat = autoclass('androidx.core.app.ActivityCompat')
+        PackageManager = autoclass('android.content.pm.PackageManager')
+
+        permission = "android.permission.POST_NOTIFICATIONS"
+
+        if ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED:
+            # Request the permission
+            ActivityCompat.requestPermissions(activity, [permission], 101)

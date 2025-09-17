@@ -14,8 +14,6 @@ import time
 # En un entorno no-Android, estos imports fallarán.
 try:
     import alarm_manager
-    from android_alarm_receiver import on_receive
-    from android.broadcast import BroadcastReceiver
     IS_ANDROID = True
 except ImportError:
     IS_ANDROID = False
@@ -36,7 +34,6 @@ class AlarmsTab(ft.Column):
         self.app_state = app_state
         self.alarms = []
         self.selected_alarm_time = None
-        self.br = None # Referencia al BroadcastReceiver
 
         # --- Componentes de la UI ---
         self.clock_text = ft.Text("", style=TextStyles.title(self.app_state.is_dark_theme), text_align=ft.TextAlign.CENTER)
@@ -97,20 +94,14 @@ class AlarmsTab(ft.Column):
         self.load_saved_alarms()
 
         if IS_ANDROID:
-            # Registrar el BroadcastReceiver para las alarmas
-            activity = alarm_manager.get_activity()
-            if activity:
-                package_name = activity.getPackageName()
-                self.br = BroadcastReceiver(on_receive, actions=[f"{package_name}.ALARM"])
-                self.br.register()
+            # Request permission on tab load
+            alarm_manager.request_notification_permission()
 
         self.running = True
         self.page.run_thread(self.update_clock)
 
     def will_unmount(self):
         self.running = False
-        if IS_ANDROID and self.br:
-            self.br.unregister()
 
     def load_saved_alarms(self):
         if self.page.client_storage.contains_key("alarms"):
