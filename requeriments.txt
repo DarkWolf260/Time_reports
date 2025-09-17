@@ -3,7 +3,7 @@
 
 # Framework principal
 flet>=0.28.3
-pyjnius>=1.6.1 # Dependencia para notificaciones en Android
+flet_notifications
 
 # Dependencias adicionales para desarrollo (opcional)
 # pytest>=7.0.0  # Para pruebas unitarias

@@ -18,23 +18,26 @@ class Alarm:
     alarm_type: str  # "sound" o "notification"
     active: bool = True
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    # El ID de la notificación para poder cancelarla. Usaremos un entero.
+    notification_id: int = field(default_factory=lambda: uuid.uuid4().int & (1<<31)-1)
 
     def to_dict(self) -> Dict:
         return {
             "id": self.id,
             "time": self.time,
             "type": self.alarm_type,
-            "active": self.active
+            "active": self.active,
+            "notification_id": self.notification_id
         }
 
     @classmethod
     def from_dict(cls, data: Dict) -> 'Alarm':
-        # Compatibilidad con formato antiguo
         return cls(
             id=data.get("id", str(uuid.uuid4())),
             time=data["time"],
-            alarm_type=data.get("type", "sound"), # 'type' es el nuevo nombre
-            active=data.get("active", True)
+            alarm_type=data.get("type", "sound"),
+            active=data.get("active", True),
+            notification_id=data.get("notification_id", uuid.uuid4().int & (1<<31)-1)
         )
 
 @dataclass
@@ -162,16 +165,7 @@ class AlarmManager:
 
     def _get_storage_path(self) -> str:
         """Obtiene la ruta del archivo de almacenamiento de alarmas."""
-        try:
-            from jnius import autoclass
-            PythonActivity = autoclass('org.kivy.android.PythonActivity')
-            context = PythonActivity.mActivity
-            if context:
-                return os.path.join(context.getFilesDir().getAbsolutePath(), 'alarms.json')
-        except ImportError:
-            pass # No estamos en Android, usar ruta local
-
-        # Para desarrollo en escritorio
+        # Para desarrollo en escritorio y como fallback
         return 'alarms.json'
 
     def cargar_alarmas(self) -> None:
@@ -201,7 +195,6 @@ class AlarmManager:
         if not time or not alarm_type:
             return None
 
-        # Evitar duplicados exactos (misma hora y tipo)
         if any(a.time == time and a.alarm_type == alarm_type for a in self._alarms):
             return None
 
@@ -210,14 +203,14 @@ class AlarmManager:
         self.guardar_alarmas()
         return new_alarm
 
-    def eliminar_alarma(self, alarm_id: str) -> bool:
-        """Elimina una alarma por su ID."""
+    def eliminar_alarma(self, alarm_id: str) -> Optional[Alarm]:
+        """Elimina una alarma por su ID y la devuelve."""
         alarm_a_eliminar = self.buscar_por_id(alarm_id)
         if alarm_a_eliminar:
             self._alarms.remove(alarm_a_eliminar)
             self.guardar_alarmas()
-            return True
-        return False
+            return alarm_a_eliminar
+        return None
 
     def buscar_por_id(self, alarm_id: str) -> Optional[Alarm]:
         """Busca una alarma por su ID."""
