@@ -1,19 +1,28 @@
 # src/alarms.py
 """
-Este módulo contiene la funcionalidad de reloj, alarmas y notificaciones.
+Este módulo contiene la funcionalidad de reloj y la interfaz para programar alarmas.
+La lógica de las alarmas ahora es manejada por el `alarm_manager` nativo de Android.
 """
 
 import flet as ft
 from styles import TextStyles, ContainerStyles
-import time
-from threading import Thread, Lock
 import datetime
 import json
-from notifications import send_notification
+import time
+
+# Asumiendo que Flet se ejecuta en Android, importamos los módulos específicos.
+# En un entorno no-Android, estos imports fallarán.
+try:
+    import alarm_manager
+    from android_alarm_receiver import on_receive
+    from android.broadcast import BroadcastReceiver
+    IS_ANDROID = True
+except ImportError:
+    IS_ANDROID = False
 
 class AlarmsTab(ft.Column):
     """
-    Un control de Columna que contiene el reloj, la configuración de alarmas y notificaciones.
+    Un control de Columna que contiene el reloj y la configuración de alarmas.
     """
     def __init__(self, app_state):
         super().__init__(
@@ -26,12 +35,11 @@ class AlarmsTab(ft.Column):
 
         self.app_state = app_state
         self.alarms = []
-        self._active_alarms_lock = Lock()
         self.selected_alarm_time = None
+        self.br = None # Referencia al BroadcastReceiver
 
         # --- Componentes de la UI ---
         self.clock_text = ft.Text("", style=TextStyles.title(self.app_state.is_dark_theme), text_align=ft.TextAlign.CENTER)
-
         self.time_picker = ft.TimePicker(
             on_change=self.time_picker_changed,
             confirm_text="Confirmar",
@@ -45,17 +53,9 @@ class AlarmsTab(ft.Column):
             tooltip="Seleccionar hora",
             on_click=lambda _: self.page.open(self.time_picker)
         )
-
-        self.alarm_type = ft.RadioGroup(content=ft.Row([
-            ft.Radio(value="sound", label="Sonido"),
-            ft.Radio(value="notification", label="Notificación")
-        ]), value="sound")
-
         self.add_alarm_button = ft.ElevatedButton(text="Añadir Alarma", on_click=self.add_alarm_clicked)
         self.alarms_list_view = ft.ListView(spacing=10, padding=20, auto_scroll=True)
-        self.audio_player = ft.Audio(src="assets/alarm.mp3", autoplay=False)
-        self.notification_status_text = ft.Text()
-
+        self.audio_player = ft.Audio(src="assets/alarm.mp3", autoplay=False) # For sound alarms
 
         # --- Construcción de la UI ---
         clock_container = ft.Container(
@@ -63,34 +63,29 @@ class AlarmsTab(ft.Column):
             **ContainerStyles.card(self.app_state.is_dark_theme),
             width=300, alignment=ft.alignment.center
         )
-
         time_selection_row = ft.Row([
             ft.Text("Hora de la alarma:", size=16),
             self.selected_time_text,
             self.pick_time_button
         ], alignment=ft.MainAxisAlignment.CENTER, spacing=10)
-
         alarm_settings_container = ft.Container(
             content=ft.Column([
                 ft.Text("Configurar Alarma", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
                 time_selection_row,
-                self.alarm_type,
+                ft.Text("Esta alarma usará el sistema nativo de Android."),
                 self.add_alarm_button,
-                self.notification_status_text
             ], spacing=15, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
             **ContainerStyles.card(self.app_state.is_dark_theme),
             width=300, alignment=ft.alignment.center
         )
-
         alarms_list_container = ft.Container(
             content=ft.Column([
-                ft.Text("Alarmas Activas", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
+                ft.Text("Alarmas Programadas", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
                 self.alarms_list_view
             ], spacing=10, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
             **ContainerStyles.card(self.app_state.is_dark_theme),
             width=300, expand=True
         )
-
         self.controls.extend([
             clock_container,
             alarm_settings_container,
@@ -99,26 +94,33 @@ class AlarmsTab(ft.Column):
 
     def did_mount(self):
         self.page.overlay.extend([self.time_picker, self.audio_player])
+        self.load_saved_alarms()
 
-        # Cargar alarmas guardadas
-        if self.page.client_storage.contains_key("alarms"):
-            try:
-                saved_alarms = json.loads(self.page.client_storage.get("alarms"))
-                if isinstance(saved_alarms, list):
-                    self.alarms = saved_alarms
-                    self.update_alarms_list()
-            except (json.JSONDecodeError, TypeError):
-                self.alarms = [] # Iniciar con lista vacía si hay error
+        if IS_ANDROID:
+            # Registrar el BroadcastReceiver para las alarmas
+            activity = alarm_manager.get_activity()
+            if activity:
+                package_name = activity.getPackageName()
+                self.br = BroadcastReceiver(on_receive, actions=[f"{package_name}.ALARM"])
+                self.br.register()
 
         self.running = True
         self.page.run_thread(self.update_clock)
-        self.page.run_thread(self.alarm_checker)
 
     def will_unmount(self):
         self.running = False
+        if IS_ANDROID and self.br:
+            self.br.unregister()
+
+    def load_saved_alarms(self):
+        if self.page.client_storage.contains_key("alarms"):
+            try:
+                self.alarms = json.loads(self.page.client_storage.get("alarms"))
+                self.update_alarms_list()
+            except (json.JSONDecodeError, TypeError):
+                self.alarms = []
 
     def _save_alarms(self):
-        """Guarda la lista de alarmas en el almacenamiento del cliente."""
         self.page.client_storage.set("alarms", json.dumps(self.alarms))
 
     def time_picker_changed(self, e):
@@ -129,80 +131,72 @@ class AlarmsTab(ft.Column):
 
     def update_clock(self):
         while self.running:
-            utc_now = datetime.datetime.now(datetime.timezone.utc)
-            hlv_time = utc_now - datetime.timedelta(hours=4)
-            self.clock_text.value = f"{hlv_time.strftime('%H:%M:%S')} HLV"
+            now = datetime.datetime.now()
+            self.clock_text.value = f"{now.strftime('%H:%M:%S')}"
             if self.page: self.update()
             time.sleep(1)
 
-    def alarm_checker(self):
-        while self.running:
-            now = datetime.datetime.now()
-            current_time_str = now.strftime('%H:%M')
-
-            with self._active_alarms_lock:
-                alarms_to_remove = []
-                for alarm in self.alarms:
-                    if alarm["time"] == current_time_str and alarm["active"]:
-                        self.trigger_alarm(alarm)
-                        alarm["active"] = False
-                        alarms_to_remove.append(alarm)
-
-            if alarms_to_remove: self.update_alarms_list()
-
-            seconds_until_next_minute = 60 - datetime.datetime.now().second
-            time.sleep(seconds_until_next_minute)
-
-    def trigger_alarm(self, alarm):
-        if alarm["type"] == "sound":
-            self.audio_player.src = "assets/alarm.mp3"
-            self.audio_player.play()
-            self.page.snack_bar = ft.SnackBar(ft.Text(f"Alarma de sonido a las {alarm['time']}!"), open=True)
-        elif alarm["type"] == "notification":
-            self.audio_player.src = "assets/notification.mp3"
-            self.audio_player.play()
-            send_notification(
-                title='Alarma',
-                text=f"recuerda enviar el reporte de las {alarm['time']}",
-                status_text=self.notification_status_text
-            )
-        if self.page:
-            self.audio_player.update()
-            self.notification_status_text.update()
-            self.page.update()
-
     def add_alarm_clicked(self, e):
         if not self.selected_alarm_time:
-            self.page.snack_bar = ft.SnackBar(ft.Text("Por favor, seleccione una hora para la alarma."), open=True)
+            self.page.snack_bar = ft.SnackBar(ft.Text("Por favor, seleccione una hora."), open=True)
             self.page.update()
             return
 
-        alarm_type = self.alarm_type.value
-        with self._active_alarms_lock:
-            new_alarm = {"time": self.selected_alarm_time, "type": alarm_type, "active": True}
-            self.alarms.append(new_alarm)
+        if not IS_ANDROID:
+            self.page.snack_bar = ft.SnackBar(ft.Text("Las notificaciones solo están soportadas en Android."), open=True)
+            self.page.update()
+            return
 
+        # Calcular el timestamp de la alarma
+        now = datetime.datetime.now()
+        hour, minute = map(int, self.selected_alarm_time.split(':'))
+        alarm_dt = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        if alarm_dt < now:
+            alarm_dt += datetime.timedelta(days=1)
+
+        alarm_id = int(alarm_dt.timestamp())
+        timestamp = alarm_dt.timestamp()
+
+        # Programar la alarma nativa
+        alarm_manager.schedule_alarm(
+            alarm_id=alarm_id,
+            timestamp=timestamp,
+            title='Alarma de Reporte',
+            message=f"Es hora de enviar el reporte de las {self.selected_alarm_time}."
+        )
+
+        # Guardar localmente para la UI
+        new_alarm = {"id": alarm_id, "time": self.selected_alarm_time}
+        self.alarms.append(new_alarm)
         self._save_alarms()
         self.update_alarms_list()
+        self.page.snack_bar = ft.SnackBar(ft.Text(f"Alarma programada para las {self.selected_alarm_time}."), open=True)
         self.page.update()
 
     def remove_alarm(self, alarm):
-        with self._active_alarms_lock:
-            self.alarms.remove(alarm)
+        if IS_ANDROID:
+            alarm_manager.cancel_alarm(alarm['id'])
+
+        self.alarms.remove(alarm)
         self._save_alarms()
         self.update_alarms_list()
+        self.page.snack_bar = ft.SnackBar(ft.Text(f"Alarma de las {alarm['time']} eliminada."), open=True)
+        self.page.update()
 
     def update_alarms_list(self):
         self.alarms_list_view.controls.clear()
-        with self._active_alarms_lock:
-            for alarm in self.alarms:
-                self.alarms_list_view.controls.append(
-                    ft.Row([
-                        ft.Icon(ft.Icons.ALARM),
-                        ft.Text(f"{alarm['time']} ({'Sonido' if alarm['type'] == 'sound' else 'Notificación'})"),
-                        ft.IconButton(icon=ft.Icons.DELETE, on_click=lambda e, a=alarm: self.remove_alarm(a), tooltip="Eliminar alarma")
-                    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
-                )
+        for alarm in self.alarms:
+            self.alarms_list_view.controls.append(
+                ft.Row([
+                    ft.Icon(ft.Icons.ALARM),
+                    ft.Text(f"{alarm['time']} (Notificación Nativa)"),
+                    ft.IconButton(
+                        icon=ft.Icons.DELETE,
+                        on_click=lambda e, a=alarm: self.remove_alarm(a),
+                        tooltip="Eliminar alarma"
+                    )
+                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
+            )
         if self.page: self.update()
 
     def update_theme(self):
@@ -212,7 +206,6 @@ class AlarmsTab(ft.Column):
                 card_style = ContainerStyles.card(self.app_state.is_dark_theme)
                 for key, value in card_style.items():
                     setattr(control, key, value)
-
                 if hasattr(control.content, 'controls') and len(control.content.controls) > 0:
                     subtitle = control.content.controls[0]
                     if isinstance(subtitle, ft.Text):
