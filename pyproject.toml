@@ -9,9 +9,8 @@ authors = [
 ]
 dependencies = [
   "flet==0.28.3",
-  "plyer==2.1.0",
-  "pyjnius==1.6.1", # For plyer on Android
-  "flet-audio==0.1.0"
+  "flet-audio==0.1.0",
+  "flet_notifications @ git+https://github.com/Bbalduzz/flet_notifications.git"
 ]
 
 [tool.flet]
