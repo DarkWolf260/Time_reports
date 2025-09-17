@@ -9,7 +9,8 @@ authors = [
 ]
 dependencies = [
   "flet==0.28.3",
-  "pyjnius==1.6.1", # For native Android access
+  "plyer==2.1.0",
+  "pyjnius==1.6.1", # For plyer on Android
   "flet-audio==0.1.0"
 ]
 
@@ -24,12 +25,6 @@ path = "src"
 
 [tool.flet.android.permission]
 "android.permission.POST_NOTIFICATIONS" = true
-"android.permission.FOREGROUND_SERVICE" = true
-"android.permission.SCHEDULE_EXACT_ALARM" = true
-"android.permission.RECEIVE_BOOT_COMPLETED" = true
-
-[tool.flet.android.services]
-"AlarmService" = "src/service.py"
 
 [tool.uv]
 dev-dependencies = [
