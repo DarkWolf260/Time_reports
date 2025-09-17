@@ -173,6 +173,27 @@ class WeatherReportApp:
 def main(page: ft.Page):
     """Función principal de la aplicación."""
 
+    try:
+        from jnius import autoclass
+        from android.broadcast import BroadcastReceiver
+
+        def on_boot(context, intent):
+            """Callback para el BroadcastReceiver cuando el dispositivo arranca."""
+            print("MAIN: BOOT_COMPLETED recibido. Iniciando BootService.")
+            service = autoclass('org.kivy.android.PythonService')
+            service.start(context, 'BootService', '')
+
+        # Registrar el BroadcastReceiver para escuchar cuando el dispositivo termine de arrancar
+        br = BroadcastReceiver(on_boot, actions=['android.intent.action.BOOT_COMPLETED'])
+        br.start()
+        print("MAIN: BroadcastReceiver para BOOT_COMPLETED registrado.")
+
+    except ImportError:
+        print("MAIN: No se está en un entorno Android, se omite el registro del BroadcastReceiver.")
+    except Exception as e:
+        print(f"MAIN: Error al registrar BroadcastReceiver: {e}")
+
+
     # Inicialización de datos por defecto si no existen
     if not page.client_storage.contains_key("operators"):
         page.client_storage.set("operators", json.dumps(DEFAULT_OPERATORS))

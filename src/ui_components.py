@@ -593,3 +593,32 @@ class ActionButtons:
         """Actualiza los estilos según el tema."""
         self.operator_management.update_theme()
         self.manage_button.style = ButtonStyles.secondary(self.app_state.is_dark_theme)
+
+class AlarmCard(ft.Row):
+    """
+    Componente para mostrar una alarma individual con un botón para eliminar.
+    """
+    def __init__(self, alarm, on_delete: Callable):
+        super().__init__(alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
+
+        self.alarm = alarm
+        self.on_delete = on_delete
+
+        alarm_type_icon = ft.icons.NOTIFICATIONS if alarm.alarm_type == "notification" else ft.icons.AUDIOTRACK
+
+        self.controls = [
+            ft.Row([
+                ft.Icon(name=alarm_type_icon),
+                ft.Text(f"{alarm.time}", weight=ft.FontWeight.BOLD),
+            ], spacing=10),
+            ft.IconButton(
+                icon=ft.icons.DELETE_OUTLINE,
+                tooltip="Eliminar Alarma",
+                on_click=self._delete_clicked,
+                icon_color=Colors.DANGER
+            )
+        ]
+
+    def _delete_clicked(self, e):
+        """Llama a la función de eliminación pasando el ID de la alarma."""
+        self.on_delete(self.alarm.id)

@@ -7,8 +7,35 @@ import os
 import datetime
 import re
 from typing import List, Dict, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from config import TIEMPO, EMOJI_TIEMPO, DEPARTAMENTO
+import uuid
+
+@dataclass
+class Alarm:
+    """Modelo para representar una alarma."""
+    time: str  # Formato "HH:MM"
+    alarm_type: str  # "sound" o "notification"
+    active: bool = True
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
+
+    def to_dict(self) -> Dict:
+        return {
+            "id": self.id,
+            "time": self.time,
+            "type": self.alarm_type,
+            "active": self.active
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> 'Alarm':
+        # Compatibilidad con formato antiguo
+        return cls(
+            id=data.get("id", str(uuid.uuid4())),
+            time=data["time"],
+            alarm_type=data.get("type", "sound"), # 'type' es el nuevo nombre
+            active=data.get("active", True)
+        )
 
 @dataclass
 class Operador:
@@ -125,6 +152,84 @@ class OperadorManager:
         """Obtiene la cantidad de operadores."""
         return len(self._operadores)
 
+class AlarmManager:
+    """Gestor para manejar las alarmas, usando un archivo JSON para persistencia."""
+
+    def __init__(self):
+        self._alarms: List[Alarm] = []
+        self._storage_path = self._get_storage_path()
+        self.cargar_alarmas()
+
+    def _get_storage_path(self) -> str:
+        """Obtiene la ruta del archivo de almacenamiento de alarmas."""
+        try:
+            from jnius import autoclass
+            PythonActivity = autoclass('org.kivy.android.PythonActivity')
+            context = PythonActivity.mActivity
+            if context:
+                return os.path.join(context.getFilesDir().getAbsolutePath(), 'alarms.json')
+        except ImportError:
+            pass # No estamos en Android, usar ruta local
+
+        # Para desarrollo en escritorio
+        return 'alarms.json'
+
+    def cargar_alarmas(self) -> None:
+        """Carga las alarmas desde el archivo JSON."""
+        if not os.path.exists(self._storage_path):
+            self._alarms = []
+            return
+        try:
+            with open(self._storage_path, 'r') as f:
+                data = json.load(f)
+                self._alarms = [Alarm.from_dict(a) for a in data]
+        except (json.JSONDecodeError, KeyError, TypeError, IOError) as e:
+            print(f"Error cargando alarmas desde {self._storage_path}: {e}")
+            self._alarms = []
+
+    def guardar_alarmas(self) -> None:
+        """Guarda las alarmas en el archivo JSON."""
+        try:
+            with open(self._storage_path, 'w') as f:
+                data = [a.to_dict() for a in self._alarms]
+                json.dump(data, f, indent=4)
+        except IOError as e:
+            print(f"Error guardando alarmas en {self._storage_path}: {e}")
+
+    def agregar_alarma(self, time: str, alarm_type: str) -> Optional[Alarm]:
+        """Agrega una nueva alarma."""
+        if not time or not alarm_type:
+            return None
+
+        # Evitar duplicados exactos (misma hora y tipo)
+        if any(a.time == time and a.alarm_type == alarm_type for a in self._alarms):
+            return None
+
+        new_alarm = Alarm(time=time, alarm_type=alarm_type)
+        self._alarms.append(new_alarm)
+        self.guardar_alarmas()
+        return new_alarm
+
+    def eliminar_alarma(self, alarm_id: str) -> bool:
+        """Elimina una alarma por su ID."""
+        alarm_a_eliminar = self.buscar_por_id(alarm_id)
+        if alarm_a_eliminar:
+            self._alarms.remove(alarm_a_eliminar)
+            self.guardar_alarmas()
+            return True
+        return False
+
+    def buscar_por_id(self, alarm_id: str) -> Optional[Alarm]:
+        """Busca una alarma por su ID."""
+        for alarm in self._alarms:
+            if alarm.id == alarm_id:
+                return alarm
+        return None
+
+    def obtener_alarmas(self) -> List[Alarm]:
+        """Obtiene una copia de la lista de alarmas."""
+        return self._alarms.copy()
+
 class ReportGenerator:
     """Generador de reportes meteorológicos."""
     
@@ -201,6 +306,7 @@ class AppState:
     def __init__(self, page=None):
         self.page = page
         self.operador_manager = OperadorManager(page=self.page)
+        self.alarm_manager = AlarmManager()
         self.indice_tiempo = 0
         self.indice_operador = 0
         self.is_dark_theme = False
