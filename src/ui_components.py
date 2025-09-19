@@ -81,8 +81,7 @@ class EjeCard(ft.Container):
         super().__init__(
             content=content,
             **ContainerStyles.card(self.app_state.is_dark_theme),
-            width=220,
-            height=300
+            expand=1
         )
 
     def _create_municipio_row(self, municipio: str) -> ft.Row:
@@ -95,7 +94,7 @@ class EjeCard(ft.Container):
                 ) for i, nombre in enumerate(NOMBRES_TIEMPO)
             ],
             value="0",
-            width=150,
+            width=200,
             **InputStyles.dropdown(self.app_state.is_dark_theme),
         )
 
