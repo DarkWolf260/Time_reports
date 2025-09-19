@@ -31,7 +31,7 @@ class ReportEntryRow(ft.Row):
             **InputStyles.dropdown(self.app_state.is_dark_theme)
         )
         self.delete_button = ft.IconButton(
-            icon=ft.icons.DELETE_OUTLINE, icon_color=Colors.DANGER,
+            icon=ft.Icons.DELETE_OUTLINE, icon_color=Colors.ERROR,
             on_click=self._delete_clicked, visible=not self._is_first_entry, tooltip="Eliminar línea"
         )
 
@@ -57,7 +57,7 @@ class ReportEntryRow(ft.Row):
 
     def validate(self) -> bool:
         is_valid = self.weather_dropdown.value != "0"
-        self.weather_dropdown.border_color = Colors.DANGER if not is_valid else None
+        self.weather_dropdown.border_color = Colors.ERROR if not is_valid else None
         self.update()
         return is_valid
 
@@ -99,7 +99,7 @@ class EjeCard(ft.Container):
         return ft.Column([
             ft.Row([
                 ft.Text(municipio, weight=ft.FontWeight.BOLD, expand=True),
-                ft.IconButton(icon=ft.icons.ADD_CIRCLE_OUTLINE, on_click=add_entry, tooltip="Añadir línea")
+                ft.IconButton(icon=ft.Icons.ADD_CIRCLE_OUTLINE, on_click=add_entry, tooltip="Añadir línea")
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             entries_container,
             ft.Divider(height=5, thickness=0.5)
