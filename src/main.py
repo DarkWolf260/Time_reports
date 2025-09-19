@@ -6,7 +6,7 @@ import flet as ft
 import json
 from models import AppState
 from ui_components import (
-    CustomAppBar, ReportDisplay, OperatorSelector, ActionButtons,
+    CustomAppBar, OperatorSelector, ActionButtons,
     OperatorManagementDialog, EjeCard
 )
 from styles import ThemeManager, TextStyles
@@ -47,7 +47,6 @@ class WeatherReportApp:
         )
         self.page.appbar = self.app_bar.app_bar
 
-        self.report_display = ReportDisplay(self.app_state)
         self.action_buttons = ActionButtons(self.app_state, self.page)
 
         # Crear tarjetas para cada eje
@@ -62,43 +61,26 @@ class WeatherReportApp:
             self.eje_cards,
             spacing=15,
             scroll=ft.ScrollMode.ADAPTIVE,
-            expand=True
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            alignment=ft.MainAxisAlignment.CENTER
         )
 
-        left_panel = ft.Column(
+        credits = ft.Text("Creado por: Rubén Rojas", style=TextStyles.caption(self.app_state.is_dark_theme))
+
+        main_column = ft.Column(
             [
-                controls_row,
-                ft.Divider(),
+                ft.Container(content=controls_row, expand=True),
                 ft.Row([self.operator_selector], alignment=ft.MainAxisAlignment.CENTER),
                 ft.Row([self.action_buttons], alignment=ft.MainAxisAlignment.CENTER),
+                ft.Row([credits], alignment=ft.MainAxisAlignment.CENTER)
             ],
-            expand=1,
-            spacing=15,
+            expand=True,
+            spacing=20,
+            alignment=ft.MainAxisAlignment.CENTER,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER
         )
 
-        right_panel = ft.Column(
-            [self.report_display.container],
-            expand=1
-        )
-
-        main_row = ft.Row(
-            [
-                ft.Container(
-                    left_panel,
-                    padding=ft.padding.only(top=10, left=10, right=10, bottom=20)
-                ),
-                ft.VerticalDivider(),
-                ft.Container(
-                    right_panel,
-                    padding=ft.padding.only(top=10, right=10, bottom=20)
-                )
-            ],
-            expand=True,
-            vertical_alignment=ft.CrossAxisAlignment.START
-        )
-
-        self.page.add(main_row)
+        self.page.add(main_column)
 
     def _load_saved_theme(self):
         """Carga el tema guardado."""
@@ -125,9 +107,8 @@ class WeatherReportApp:
         self._initial_update()
 
     def _on_data_change(self, e=None):
-        """Maneja los cambios en los datos."""
-        self.report_display.update_report()
-        self.page.update()
+        """Maneja los cambios en los datos. La UI se actualiza en los propios componentes."""
+        pass
 
     def _initial_update(self):
         """Realiza la actualización inicial de la interfaz."""

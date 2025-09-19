@@ -59,55 +59,6 @@ class CustomAppBar:
         theme_item.icon = ThemeManager.get_theme_icon(is_dark)
 
 
-class ReportDisplay:
-    """Componente para mostrar el reporte generado."""
-
-    def __init__(self, app_state: AppState):
-        self.app_state = app_state
-        self.text_widget = self._create_text_widget()
-        self.container = self._create_container()
-
-    def _create_text_widget(self) -> ft.Text:
-        return ft.Text(
-            spans=[],
-            size=16,
-            selectable=True,
-            font_family="Segoe UI"
-        )
-
-    def _create_container(self) -> ft.Container:
-        return ft.Container(
-            content=ft.Column(
-                [self.text_widget],
-                scroll=ft.ScrollMode.ADAPTIVE
-            ),
-            **ContainerStyles.card(self.app_state.is_dark_theme),
-            expand=True
-        )
-
-    def update_report(self):
-        """Actualiza el reporte mostrado."""
-        reporte_texto = self.app_state.generar_reporte_actual()
-        self.text_widget.spans = self._markdown_to_spans(reporte_texto)
-
-    def _markdown_to_spans(self, texto: str) -> List[ft.TextSpan]:
-        """Convierte markdown a TextSpans con el tema actual."""
-        from models import ReportGenerator
-        spans = ReportGenerator.markdown_a_textspan(texto)
-        text_color = Colors.DARK["on_surface"] if self.app_state.is_dark_theme else Colors.LIGHT["on_surface"]
-        for span in spans:
-            if span.style:
-                span.style.color = text_color
-        return spans
-
-    def update_theme(self):
-        """Actualiza los colores según el tema."""
-        container_style = ContainerStyles.card(self.app_state.is_dark_theme)
-        for key, value in container_style.items():
-            setattr(self.container, key, value)
-        self.update_report()
-
-
 class EjeCard(ft.Container):
     """Tarjeta que contiene los controles para un eje geográfico."""
 
