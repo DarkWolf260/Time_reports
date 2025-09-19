@@ -30,6 +30,8 @@ class WeatherReportApp:
         self.page.title = WINDOW_CONFIG["title"]
         self.page.window.width = WINDOW_CONFIG["width"]
         self.page.window.height = WINDOW_CONFIG["height"]
+        self.page.window_min_width = 850
+        self.page.window_min_height = 800
         self.page.window.resizable = WINDOW_CONFIG["resizable"]
         self.page.window.maximizable = WINDOW_CONFIG["maximizable"]
         self.page.vertical_alignment = ft.MainAxisAlignment.START
