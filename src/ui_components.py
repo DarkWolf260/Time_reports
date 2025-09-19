@@ -81,7 +81,8 @@ class EjeCard(ft.Container):
         super().__init__(
             content=content,
             **ContainerStyles.card(self.app_state.is_dark_theme),
-            width=400
+            width=400,
+            height=500
         )
 
     def _create_municipio_row(self, municipio: str) -> ft.Row:

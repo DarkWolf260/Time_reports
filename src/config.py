@@ -20,6 +20,8 @@ DEFAULT_OPERATORS = [
 WINDOW_CONFIG = {
     "width": 1700,
     "height": 800,
+    "min_width": 850,
+    "min_height": 800,
     "resizable": True,
     "maximizable": True,
     "title": "Reporte Meteorológico Estadal"
