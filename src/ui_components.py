@@ -10,7 +10,7 @@ from styles import (
     TextStyles, ButtonStyles, ContainerStyles, InputStyles,
     Colors, ThemeManager
 )
-from config import NOMBRES_TIEMPO, TIEMPO, JERARQUIAS, WINDOW_CONFIG, get_cargos
+from config import NOMBRES_TIEMPO, TIEMPO, EMOJI_TIEMPO, JERARQUIAS, WINDOW_CONFIG, get_cargos
 
 
 class CustomAppBar:
@@ -119,7 +119,7 @@ class EjeCard(ft.Container):
 
         municipio_rows = [self._create_municipio_row(m) for m in self.municipios]
         content = ft.Column([
-            ft.Text(f"EJE {self.eje_nombre}", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
+            ft.Text(f"📌 EJE {self.eje_nombre}", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
             ft.Divider(),
             *municipio_rows
         ])
@@ -132,7 +132,12 @@ class EjeCard(ft.Container):
     def _create_municipio_row(self, municipio: str) -> ft.Row:
         """Crea una fila para un municipio con su selector de tiempo."""
         weather_dropdown = ft.Dropdown(
-            options=[ft.dropdown.Option(key=str(i), text=nombre) for i, nombre in enumerate(NOMBRES_TIEMPO)],
+            options=[
+                ft.dropdown.Option(
+                    key=str(i),
+                    text=f"{EMOJI_TIEMPO[i]} {nombre}"
+                ) for i, nombre in enumerate(NOMBRES_TIEMPO)
+            ],
             value="0",
             width=200,
             **InputStyles.dropdown(self.app_state.is_dark_theme),

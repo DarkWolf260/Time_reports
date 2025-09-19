@@ -73,7 +73,8 @@ class WeatherReportApp:
                 ft.Row([self.action_buttons], alignment=ft.MainAxisAlignment.CENTER),
             ],
             expand=1,
-            spacing=15
+            spacing=15,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER
         )
 
         right_panel = ft.Column(
