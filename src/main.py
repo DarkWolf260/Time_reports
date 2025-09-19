@@ -38,9 +38,7 @@ class WeatherReportApp:
     def _create_components(self):
         """Crea los componentes de la interfaz."""
         self.operator_selector = OperatorSelector(self.app_state, self._on_data_change)
-        self.operator_management_dialog = OperatorManagementDialog(
-            self.app_state, self.operator_selector, self.page
-        )
+        self.operator_management_dialog = OperatorManagementDialog(self.app_state, self.operator_selector, self.page)
 
         self.app_bar = CustomAppBar(
             self.app_state,

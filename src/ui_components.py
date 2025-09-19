@@ -109,25 +109,24 @@ class ReportDisplay:
         self.update_report()
 
 
-class EjeCard(ft.UserControl):
+class EjeCard(ft.Container):
     """Tarjeta que contiene los controles para un eje geográfico."""
 
     def __init__(self, app_state: AppState, eje_nombre: str, municipios: List[str], on_change: Callable):
-        super().__init__()
         self.app_state = app_state
         self.eje_nombre = eje_nombre
         self.municipios = municipios
         self.on_change = on_change
 
-    def build(self):
-        """Construye la interfaz de la tarjeta."""
         municipio_rows = [self._create_municipio_row(m) for m in self.municipios]
-        return ft.Container(
-            content=ft.Column([
-                ft.Text(f"EJE {self.eje_nombre}", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
-                ft.Divider(),
-                *municipio_rows
-            ]),
+        content = ft.Column([
+            ft.Text(f"EJE {self.eje_nombre}", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
+            ft.Divider(),
+            *municipio_rows
+        ])
+
+        super().__init__(
+            content=content,
             **ContainerStyles.card(self.app_state.is_dark_theme),
             padding=15
         )
@@ -136,7 +135,7 @@ class EjeCard(ft.UserControl):
         """Crea una fila para un municipio con su selector de tiempo."""
         weather_dropdown = ft.Dropdown(
             options=[ft.dropdown.Option(key=str(i), text=nombre) for i, nombre in enumerate(NOMBRES_TIEMPO)],
-            value="0",  # Valor por defecto "Despejado"
+            value="0",
             width=200,
             **InputStyles.dropdown(self.app_state.is_dark_theme),
         )
@@ -149,19 +148,15 @@ class EjeCard(ft.UserControl):
         )
 
         def on_dropdown_change(e):
-            """Maneja el cambio en el selector de tiempo."""
             selected_index = int(e.control.value)
             selected_name = NOMBRES_TIEMPO[selected_index]
-
             is_event = "Evento" in selected_name
             time_field.visible = is_event
-
             self._update_municipio_state(municipio, selected_index, time_field.value)
             self.on_change()
             self.update()
 
         def on_time_change(e):
-            """Maneja el cambio en el campo de hora."""
             selected_index = int(weather_dropdown.value)
             self._update_municipio_state(municipio, selected_index, e.control.value)
             self.on_change()
@@ -180,7 +175,6 @@ class EjeCard(ft.UserControl):
         )
 
     def _update_municipio_state(self, municipio: str, index: int, time_str: str):
-        """Actualiza el estado del municipio en AppState."""
         base_text = TIEMPO[index]
         if "evento" in base_text.lower() and time_str:
             estado_final = f"{time_str} {base_text}"
@@ -189,19 +183,17 @@ class EjeCard(ft.UserControl):
         self.app_state.actualizar_estado_municipio(municipio, estado_final)
 
 
-class OperatorSelector(ft.UserControl):
+class OperatorSelector(ft.Dropdown):
     """Selector de operador."""
 
     def __init__(self, app_state: AppState, on_change: Callable):
-        super().__init__()
         self.app_state = app_state
-        self.on_change = on_change
+        self.on_change_callback = on_change
 
-    def build(self):
         nombres = self.app_state.operador_manager.obtener_nombres()
         valor_inicial = nombres[self.app_state.indice_operador] if nombres else None
 
-        self.dropdown = ft.Dropdown(
+        super().__init__(
             label="Operador que reporta",
             options=[ft.dropdown.Option(nombre) for nombre in nombres],
             value=valor_inicial,
@@ -209,38 +201,31 @@ class OperatorSelector(ft.UserControl):
             **InputStyles.dropdown(self.app_state.is_dark_theme),
             expand=True
         )
-        return self.dropdown
 
     def _on_dropdown_change(self, e):
         if e.control.value:
             self.app_state.cambiar_operador(e.control.value)
-            self.on_change()
+            self.on_change_callback()
 
     def refresh_options(self):
         """Actualiza las opciones del dropdown."""
         nombres = self.app_state.operador_manager.obtener_nombres()
-        self.dropdown.options = [ft.dropdown.Option(nombre) for nombre in nombres]
+        self.options = [ft.dropdown.Option(nombre) for nombre in nombres]
         if nombres and 0 <= self.app_state.indice_operador < len(nombres):
-            self.dropdown.value = nombres[self.app_state.indice_operador]
+            self.value = nombres[self.app_state.indice_operador]
         else:
-            self.dropdown.value = None
+            self.value = None
         self.update()
 
 
-class OperatorManagementDialog(ft.UserControl):
-    """Diálogo para gestionar operadores."""
+class OperatorManagementDialog:
+    """Clase para gestionar la creación y visualización del diálogo de operadores."""
 
     def __init__(self, app_state: AppState, operator_selector: OperatorSelector, page: ft.Page):
-        super().__init__()
         self.app_state = app_state
         self.operator_selector = operator_selector
         self.page = page
         self.dialog = None
-
-    def build(self):
-        # Este UserControl no renderiza nada directamente.
-        # El diálogo se construye y muestra a través del método `show`.
-        return ft.Container()
 
     def _create_form_fields(self):
         """Crea los campos del formulario."""
@@ -269,8 +254,8 @@ class OperatorManagementDialog(ft.UserControl):
             **InputStyles.dropdown(self.app_state.is_dark_theme)
         )
 
-    def show(self):
-        """Muestra el diálogo."""
+    def show(self, e=None):
+        """Crea y muestra el diálogo."""
         self._create_form_fields()
         dialog_style = ContainerStyles.dialog(self.app_state.is_dark_theme)
         self.dialog = ft.AlertDialog(
@@ -319,6 +304,7 @@ class OperatorManagementDialog(ft.UserControl):
         nombres = self.app_state.operador_manager.obtener_nombres()
         self.eliminar_dropdown.options = [ft.dropdown.Option(nombre) for nombre in nombres]
         self.eliminar_dropdown.value = None
+        self.dialog.content.update()
 
     def _cerrar_dialog(self, e):
         self.page.close(self.dialog)
@@ -327,25 +313,20 @@ class OperatorManagementDialog(ft.UserControl):
         self.page.open(ft.SnackBar(ft.Text(mensaje, color=color)))
 
 
-class ActionButtons(ft.UserControl):
-    """Botones de acción de la aplicación."""
+class ActionButtons(ft.FilledButton):
+    """Botón de acción para copiar el reporte."""
 
     def __init__(self, app_state: AppState, page: ft.Page):
-        super().__init__()
         self.app_state = app_state
         self.page = page
-
-    def build(self):
-        self.copy_button = ft.FilledButton(
-            "Copiar al Portapapeles",
+        super().__init__(
+            text="Copiar al Portapapeles",
             icon=ft.Icons.CONTENT_COPY,
             on_click=self._copy_report,
             style=ButtonStyles.primary()
         )
-        return self.copy_button
 
     def _copy_report(self, e):
         reporte = self.app_state.generar_reporte_actual()
         self.page.set_clipboard(reporte)
         self.page.open(ft.SnackBar(ft.Text("¡Reporte copiado!", color=Colors.SUCCESS)))
-        self.page.update()
