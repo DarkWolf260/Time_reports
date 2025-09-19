@@ -57,26 +57,35 @@ class WeatherReportApp:
 
     def _build_ui(self):
         """Construye la interfaz de usuario."""
-        controls_row = ft.Row(
-            self.eje_cards,
-            spacing=15,
-            scroll=ft.ScrollMode.ADAPTIVE,
-            vertical_alignment=ft.CrossAxisAlignment.CENTER,
-            alignment=ft.MainAxisAlignment.CENTER
+        ejes_row = ft.Row(
+            controls=self.eje_cards,
+            expand=1
+        )
+
+        controles_card = ft.Card(
+            content=ft.Container(
+                content=ft.Row(
+                    [
+                        self.operator_selector,
+                        self.action_buttons,
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                ),
+                padding=10
+            )
         )
 
         credits = ft.Text("Creado por: Rubén Rojas", style=TextStyles.caption(self.app_state.is_dark_theme))
 
         main_column = ft.Column(
             [
-                ft.Container(content=controls_row, expand=True),
-                ft.Row([self.operator_selector], alignment=ft.MainAxisAlignment.CENTER),
-                ft.Row([self.action_buttons], alignment=ft.MainAxisAlignment.CENTER),
+                ejes_row,
+                controles_card,
                 ft.Row([credits], alignment=ft.MainAxisAlignment.CENTER)
             ],
             expand=True,
-            spacing=20,
-            alignment=ft.MainAxisAlignment.CENTER,
+            spacing=10,
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER
         )
 

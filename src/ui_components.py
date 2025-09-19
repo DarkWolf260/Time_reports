@@ -124,9 +124,12 @@ class EjeCard(ft.Container):
 
         return ft.Row(
             controls=[
-                ft.Text(municipio, expand=1, weight=ft.FontWeight.BOLD),
-                weather_dropdown,
-                time_field
+                ft.Text(municipio, weight=ft.FontWeight.BOLD),
+                ft.Row(
+                    [weather_dropdown, time_field],
+                    spacing=5,
+                    alignment=ft.MainAxisAlignment.END
+                )
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             vertical_alignment=ft.CrossAxisAlignment.CENTER
