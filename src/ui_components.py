@@ -82,8 +82,7 @@ class ReportDisplay:
                 scroll=ft.ScrollMode.ADAPTIVE
             ),
             **ContainerStyles.card(self.app_state.is_dark_theme),
-            expand=True,
-            padding=ft.padding.all(15)
+            expand=True
         )
 
     def update_report(self):
@@ -127,8 +126,7 @@ class EjeCard(ft.Container):
 
         super().__init__(
             content=content,
-            **ContainerStyles.card(self.app_state.is_dark_theme),
-            padding=15
+            **ContainerStyles.card(self.app_state.is_dark_theme)
         )
 
     def _create_municipio_row(self, municipio: str) -> ft.Row:
