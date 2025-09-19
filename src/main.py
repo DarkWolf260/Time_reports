@@ -58,16 +58,15 @@ class WeatherReportApp:
 
     def _build_ui(self):
         """Construye la interfaz de usuario."""
-        controls_column = ft.Column(
+        controls_row = ft.Row(
             self.eje_cards,
             spacing=15,
             scroll=ft.ScrollMode.ADAPTIVE,
-            expand=True
         )
 
         left_panel = ft.Column(
             [
-                controls_column,
+                controls_row,
                 ft.Divider(),
                 ft.Row([self.operator_selector], alignment=ft.MainAxisAlignment.CENTER),
                 ft.Row([self.action_buttons], alignment=ft.MainAxisAlignment.CENTER),
