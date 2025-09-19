@@ -160,7 +160,7 @@ class OperatorSelector(ft.Dropdown):
             value=valor_inicial,
             on_change=self._on_dropdown_change,
             **InputStyles.dropdown(self.app_state.is_dark_theme),
-            expand=True
+            width=400
         )
 
     def _on_dropdown_change(self, e):

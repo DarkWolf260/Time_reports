@@ -9,7 +9,7 @@ from ui_components import (
     CustomAppBar, OperatorSelector, ActionButtons,
     OperatorManagementDialog, EjeCard
 )
-from styles import ThemeManager, TextStyles
+from styles import ThemeManager, TextStyles, ContainerStyles
 from config import WINDOW_CONFIG, DEFAULT_OPERATORS, EJES
 
 
@@ -63,19 +63,17 @@ class WeatherReportApp:
             vertical_alignment=ft.CrossAxisAlignment.STRETCH
         )
 
-        controles_card = ft.Card(
-            content=ft.Container(
-                content=ft.Column(
-                    [
-                        self.operator_selector,
-                        self.action_buttons,
-                    ],
-                    spacing=10,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    tight=True
-                ),
-                padding=10
-            )
+        controles_card = ft.Container(
+            content=ft.Column(
+                [
+                    self.operator_selector,
+                    self.action_buttons,
+                ],
+                spacing=10,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                tight=True
+            ),
+            **ContainerStyles.card(self.app_state.is_dark_theme),
         )
 
         credits = ft.Text("Creado por: Rubén Rojas", style=TextStyles.caption(self.app_state.is_dark_theme))
