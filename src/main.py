@@ -62,6 +62,7 @@ class WeatherReportApp:
             self.eje_cards,
             spacing=15,
             scroll=ft.ScrollMode.ADAPTIVE,
+            expand=True
         )
 
         left_panel = ft.Column(

@@ -118,15 +118,20 @@ class EjeCard(ft.Container):
         self.on_change = on_change
 
         municipio_rows = [self._create_municipio_row(m) for m in self.municipios]
-        content = ft.Column([
-            ft.Text(f"📌 EJE {self.eje_nombre}", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
-            ft.Divider(),
-            *municipio_rows
-        ])
+        content = ft.Column(
+            [
+                ft.Text(f"📌 EJE {self.eje_nombre}", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
+                ft.Divider(),
+                *municipio_rows
+            ],
+            scroll=ft.ScrollMode.ADAPTIVE
+        )
 
         super().__init__(
             content=content,
-            **ContainerStyles.card(self.app_state.is_dark_theme)
+            **ContainerStyles.card(self.app_state.is_dark_theme),
+            width=220,
+            height=300
         )
 
     def _create_municipio_row(self, municipio: str) -> ft.Row:
@@ -139,7 +144,7 @@ class EjeCard(ft.Container):
                 ) for i, nombre in enumerate(NOMBRES_TIEMPO)
             ],
             value="0",
-            width=200,
+            width=150,
             **InputStyles.dropdown(self.app_state.is_dark_theme),
         )
 
