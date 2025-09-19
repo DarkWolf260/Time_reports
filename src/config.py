@@ -29,31 +29,38 @@ WINDOW_CONFIG = {
 
 # Estados del tiempo
 TIEMPO = [
+    "- Selecciona una opción -",
     "Cielo despejado",
     "Cielo parcialmente nublado",
+    "Cielo con nubosidad fragmentada",
+    "Cielo con nubosidad dispersa",
     "Cielo nublado",
-    "Precipitaciones leves",
-    "Precipitaciones moderadas",
-    "Precipitaciones fuertes",
-    "No se obtuvo información",
-    "Inicio de evento meteorológico",
-    "Fin de evento meteorológico"
+    "Inicia evento meteorológico, precipitaciones de leve intensidad.",
+    "Inicia evento meteorológico, precipitaciones de moderada intensidad",
+    "Inicia evento meteorológico, precipitaciones de fuerte intensidad",
+    "Se reporta el aumento de las precipitaciones de leves a moderadas",
+    "Se reporta el aumento de las precipitaciones de moderadas a fuertes",
+    "Se reporta disminución de las precipitaciones de moderadas a leves",
+    "Se reporta disminución de las precipitaciones de fuertes a moderadas",
+    "Finaliza evento meteorológico",
+    "No se obtuvo información"
 ]
 
 EMOJI_TIEMPO = [
-    "☀️", "⛅️", "☁️", "💧", "🌧️", "⛈️", "❓", "📢", "✅"
+    "⚪",
+    "☀", "⛅", "🌤", "🌤", "☁", "🌧", "🌧", "🌧",
+    "🌧", "🌧", "🌧", "🌧", "☁",
+    "🤷"
 ]
 
 NOMBRES_TIEMPO = [
-    "Despejado",
-    "Parcialmente Nublado",
-    "Nublado",
-    "Precipitaciones Leves",
-    "Precipitaciones Moderadas",
-    "Precipitaciones Fuertes",
-    "Sin Información",
-    "Iniciar Evento",
-    "Finalizar Evento"
+    "- Selecciona una opción -",
+    "Despejado", "Parcialmente nublado", "Nubosidad fragmentada",
+    "Nubosidad dispersa", "Nublado", "Precipitaciones leves",
+    "Precipitaciones moderadas", "Precipitaciones fuertes",
+    "Leves a moderadas", "Moderadas a fuertes", "Moderadas a leves",
+    "Fuertes a moderadas", "Cese de las precipitaciones",
+    "Sin Información"
 ]
 
 # Cargos y jerarquías

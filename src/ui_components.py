@@ -3,19 +3,134 @@
 Componentes de interfaz de usuario reutilizables para la aplicación de reportes estadales.
 """
 import flet as ft
-import json
-from typing import Callable, List, Dict
-from models import AppState, Operador
-from styles import (
-    TextStyles, ButtonStyles, ContainerStyles, InputStyles,
-    Colors, ThemeManager
-)
+from typing import Callable, List
+from models import AppState, Operador, ReportEntry
+from styles import TextStyles, ButtonStyles, ContainerStyles, InputStyles, Colors, ThemeManager
 from config import NOMBRES_TIEMPO, TIEMPO, EMOJI_TIEMPO, JERARQUIAS, WINDOW_CONFIG, get_cargos
 
+class ReportEntryRow(ft.Row):
+    """Representa una única línea de entrada de reporte para un municipio."""
+    def __init__(self, app_state: AppState, municipio: str, entry: ReportEntry, on_delete: Callable):
+        super().__init__(spacing=5, vertical_alignment=ft.CrossAxisAlignment.CENTER)
+        self.app_state = app_state
+        self.municipio = municipio
+        self.entry = entry
+        self.on_delete_callback = on_delete
+
+        self._is_first_entry = self.app_state.estados_municipios[self.municipio][0].id == self.entry.id
+
+        self.time_field = ft.TextField(
+            label="Hora", width=80, value=self.entry.hora,
+            on_blur=self._on_data_change,
+            **InputStyles.textfield(self.app_state.is_dark_theme)
+        )
+        self.weather_dropdown = ft.Dropdown(
+            options=[ft.dropdown.Option(key=str(i), text=f"{EMOJI_TIEMPO[i]} {nombre}") for i, nombre in enumerate(NOMBRES_TIEMPO)],
+            value=str(self.entry.indice_tiempo), width=240,
+            on_change=self._on_data_change,
+            **InputStyles.dropdown(self.app_state.is_dark_theme)
+        )
+        self.delete_button = ft.IconButton(
+            icon=ft.icons.DELETE_OUTLINE, icon_color=Colors.DANGER,
+            on_click=self._delete_clicked, visible=not self._is_first_entry, tooltip="Eliminar línea"
+        )
+
+        self.controls = [self.time_field, self.weather_dropdown, self.delete_button]
+        self._update_time_field_visibility()
+
+    def _on_data_change(self, e=None):
+        self.app_state.update_report_line(
+            self.municipio, self.entry.id,
+            int(self.weather_dropdown.value), self.time_field.value
+        )
+        self._update_time_field_visibility()
+        self.page.update()
+
+    def _update_time_field_visibility(self):
+        selected_text = TIEMPO[int(self.weather_dropdown.value)].lower()
+        is_precipitation = "precipitaciones" in selected_text
+        # La primera línea no lleva hora, las demás sí
+        self.time_field.visible = not self._is_first_entry or is_precipitation
+
+    def _delete_clicked(self, e):
+        self.on_delete_callback(self.entry.id)
+
+    def validate(self) -> bool:
+        is_valid = self.weather_dropdown.value != "0"
+        self.weather_dropdown.border_color = Colors.DANGER if not is_valid else None
+        self.update()
+        return is_valid
+
+class EjeCard(ft.Container):
+    """Tarjeta que contiene los controles para un eje geográfico."""
+    def __init__(self, app_state: AppState, eje_nombre: str, municipios: List[str]):
+        super().__init__()
+        self.app_state = app_state
+        self.eje_nombre = eje_nombre
+        self.municipios = municipios
+        self.entry_controls = {} # Almacena las columnas de entradas por municipio
+
+        # Configuración del contenedor principal
+        self.width = 400
+        self.height = 500
+        self.padding = ContainerStyles.card(self.app_state.is_dark_theme).get("padding")
+        self.bgcolor = ContainerStyles.card(self.app_state.is_dark_theme).get("bgcolor")
+        self.border_radius = ContainerStyles.card(self.app_state.is_dark_theme).get("border_radius")
+
+        self.content = self._build()
+
+    def _build(self):
+        municipio_cols = [self._create_municipio_view(m) for m in self.municipios]
+        return ft.Column(
+            [ft.Text(f"📌 EJE {self.eje_nombre}", style=TextStyles.subtitle(self.app_state.is_dark_theme)), ft.Divider()] + municipio_cols,
+            scroll=ft.ScrollMode.ADAPTIVE
+        )
+
+    def _create_municipio_view(self, municipio: str) -> ft.Column:
+        entries_container = ft.Column()
+        self.entry_controls[municipio] = entries_container
+        self._rebuild_entries(municipio)
+
+        def add_entry(e):
+            self.app_state.add_report_line(municipio)
+            self._rebuild_entries(municipio)
+            self.update()
+
+        return ft.Column([
+            ft.Row([
+                ft.Text(municipio, weight=ft.FontWeight.BOLD, expand=True),
+                ft.IconButton(icon=ft.icons.ADD_CIRCLE_OUTLINE, on_click=add_entry, tooltip="Añadir línea")
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+            entries_container,
+            ft.Divider(height=5, thickness=0.5)
+        ])
+
+    def _rebuild_entries(self, municipio: str):
+        container = self.entry_controls[municipio]
+        container.controls.clear()
+        for entry in self.app_state.estados_municipios.get(municipio, []):
+            row = ReportEntryRow(
+                self.app_state, municipio, entry,
+                on_delete=lambda entry_id: self._delete_entry(municipio, entry_id)
+            )
+            container.controls.append(row)
+
+    def _delete_entry(self, municipio: str, entry_id: str):
+        self.app_state.remove_report_line(municipio, entry_id)
+        self._rebuild_entries(municipio)
+        self.update()
+
+    def validate(self) -> bool:
+        is_valid = True
+        for municipio_container in self.entry_controls.values():
+            for row in municipio_container.controls:
+                if isinstance(row, ReportEntryRow) and not row.validate():
+                    is_valid = False
+        return is_valid
+
+# --- Componentes restantes (CustomAppBar, OperatorSelector, etc.) ---
 
 class CustomAppBar:
-    """AppBar personalizada con título y menú de opciones."""
-
     def __init__(self, app_state: AppState, on_theme_change: Callable, on_manage_operators: Callable):
         self.app_state = app_state
         self.on_theme_change = on_theme_change
@@ -23,145 +138,33 @@ class CustomAppBar:
         self.app_bar = self._create_app_bar()
 
     def _create_app_bar(self) -> ft.AppBar:
-        """Crea el widget AppBar."""
         is_dark = self.app_state.is_dark_theme
         return ft.AppBar(
             leading=ft.Image(src="icon.png", width=30, height=30),
-            title=ft.Text(
-                WINDOW_CONFIG["title"],
-                style=TextStyles.subtitle(is_dark)
-            ),
+            title=ft.Text(WINDOW_CONFIG["title"], style=TextStyles.subtitle(is_dark)),
             bgcolor=ContainerStyles.card(is_dark)["bgcolor"],
-            actions=[
-                ft.PopupMenuButton(
-                    items=[
-                        ft.PopupMenuItem(
-                            text="Cambiar Tema",
-                            icon=ThemeManager.get_theme_icon(is_dark),
-                            on_click=lambda _: self.on_theme_change()
-                        ),
-                        ft.PopupMenuItem(
-                            text="Gestionar Operadores",
-                            icon=ft.Icons.MANAGE_ACCOUNTS,
-                            on_click=lambda _: self.on_manage_operators()
-                        ),
-                    ]
-                )
-            ]
+            actions=[ft.PopupMenuButton(items=[
+                ft.PopupMenuItem(text="Cambiar Tema", icon=ThemeManager.get_theme_icon(is_dark), on_click=lambda _: self.on_theme_change()),
+                ft.PopupMenuItem(text="Gestionar Operadores", icon=ft.Icons.MANAGE_ACCOUNTS, on_click=lambda _: self.on_manage_operators()),
+            ])]
         )
 
     def update_theme(self):
-        """Actualiza el tema del AppBar."""
         is_dark = self.app_state.is_dark_theme
         self.app_bar.title.style = TextStyles.subtitle(is_dark)
         self.app_bar.bgcolor = ContainerStyles.card(is_dark)["bgcolor"]
-        theme_item = self.app_bar.actions[0].items[0]
-        theme_item.icon = ThemeManager.get_theme_icon(is_dark)
-
-
-class EjeCard(ft.Container):
-    """Tarjeta que contiene los controles para un eje geográfico."""
-
-    def __init__(self, app_state: AppState, eje_nombre: str, municipios: List[str], on_change: Callable):
-        self.app_state = app_state
-        self.eje_nombre = eje_nombre
-        self.municipios = municipios
-        self.on_change = on_change
-
-        municipio_rows = [self._create_municipio_row(m) for m in self.municipios]
-        content = ft.Column(
-            [
-                ft.Text(f"📌 EJE {self.eje_nombre}", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
-                ft.Divider(),
-                *municipio_rows
-            ],
-            scroll=ft.ScrollMode.ADAPTIVE
-        )
-
-        super().__init__(
-            content=content,
-            **ContainerStyles.card(self.app_state.is_dark_theme),
-            width=400,
-            height=500
-        )
-
-    def _create_municipio_row(self, municipio: str) -> ft.Row:
-        """Crea una fila para un municipio con su selector de tiempo."""
-        weather_dropdown = ft.Dropdown(
-            options=[
-                ft.dropdown.Option(
-                    key=str(i),
-                    text=f"{EMOJI_TIEMPO[i]} {nombre}"
-                ) for i, nombre in enumerate(NOMBRES_TIEMPO)
-            ],
-            value="0",
-            width=200,
-            **InputStyles.dropdown(self.app_state.is_dark_theme),
-        )
-
-        time_field = ft.TextField(
-            label="Hora (HH:MM)",
-            width=120,
-            visible=False,
-            **InputStyles.textfield(self.app_state.is_dark_theme)
-        )
-
-        def on_dropdown_change(e):
-            selected_index = int(e.control.value)
-            selected_name = NOMBRES_TIEMPO[selected_index]
-            is_event = "Evento" in selected_name
-            time_field.visible = is_event
-            self._update_municipio_state(municipio, selected_index, time_field.value)
-            self.on_change()
-            self.update()
-
-        def on_time_change(e):
-            selected_index = int(weather_dropdown.value)
-            self._update_municipio_state(municipio, selected_index, e.control.value)
-            self.on_change()
-
-        weather_dropdown.on_change = on_dropdown_change
-        time_field.on_change = on_time_change
-
-        return ft.Row(
-            controls=[
-                ft.Text(municipio, weight=ft.FontWeight.BOLD),
-                ft.Row(
-                    [weather_dropdown, time_field],
-                    spacing=5,
-                    alignment=ft.MainAxisAlignment.END
-                )
-            ],
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-            vertical_alignment=ft.CrossAxisAlignment.CENTER
-        )
-
-    def _update_municipio_state(self, municipio: str, index: int, time_str: str):
-        base_text = TIEMPO[index]
-        if "evento" in base_text.lower() and time_str:
-            estado_final = f"{time_str} {base_text}"
-        else:
-            estado_final = base_text
-        self.app_state.actualizar_estado_municipio(municipio, estado_final)
-
+        self.app_bar.actions[0].items[0].icon = ThemeManager.get_theme_icon(is_dark)
 
 class OperatorSelector(ft.Dropdown):
-    """Selector de operador."""
-
     def __init__(self, app_state: AppState, on_change: Callable):
         self.app_state = app_state
         self.on_change_callback = on_change
-
         nombres = self.app_state.operador_manager.obtener_nombres()
         valor_inicial = nombres[self.app_state.indice_operador] if nombres else None
-
         super().__init__(
-            label="Operador que reporta",
-            options=[ft.dropdown.Option(nombre) for nombre in nombres],
-            value=valor_inicial,
-            on_change=self._on_dropdown_change,
-            **InputStyles.dropdown(self.app_state.is_dark_theme),
-            width=400
+            label="Operador que reporta", options=[ft.dropdown.Option(nombre) for nombre in nombres],
+            value=valor_inicial, on_change=self._on_dropdown_change,
+            **InputStyles.dropdown(self.app_state.is_dark_theme), width=400
         )
 
     def _on_dropdown_change(self, e):
@@ -170,19 +173,12 @@ class OperatorSelector(ft.Dropdown):
             self.on_change_callback()
 
     def refresh_options(self):
-        """Actualiza las opciones del dropdown."""
         nombres = self.app_state.operador_manager.obtener_nombres()
         self.options = [ft.dropdown.Option(nombre) for nombre in nombres]
-        if nombres and 0 <= self.app_state.indice_operador < len(nombres):
-            self.value = nombres[self.app_state.indice_operador]
-        else:
-            self.value = None
+        self.value = nombres[self.app_state.indice_operador] if nombres and 0 <= self.app_state.indice_operador < len(nombres) else None
         self.update()
 
-
 class OperatorManagementDialog:
-    """Clase para gestionar la creación y visualización del diálogo de operadores."""
-
     def __init__(self, app_state: AppState, operator_selector: OperatorSelector, page: ft.Page):
         self.app_state = app_state
         self.operator_selector = operator_selector
@@ -190,105 +186,65 @@ class OperatorManagementDialog:
         self.dialog = None
 
     def _create_form_fields(self):
-        """Crea los campos del formulario."""
         style = InputStyles.textfield(self.app_state.is_dark_theme)
         self.nombre_field = ft.TextField(label="Nombre", width=300, hint_text="Nombre del operador", **style)
         self.cedula_field = ft.TextField(label="Cédula", width=300, hint_text="V-XX.XXX.XXX", **style)
         cargos = get_cargos(self.app_state.departamento)
-        self.cargo_dropdown = ft.Dropdown(
-            label="Cargo",
-            width=300,
-            options=[ft.dropdown.Option(cargo) for cargo in cargos],
-            value=cargos[0] if cargos else None,
-            **InputStyles.dropdown(self.app_state.is_dark_theme)
-        )
-        self.jerarquia_dropdown = ft.Dropdown(
-            label="Jerarquía",
-            width=300,
-            options=[ft.dropdown.Option(j) for j in JERARQUIAS],
-            value=JERARQUIAS[0],
-            **InputStyles.dropdown(self.app_state.is_dark_theme)
-        )
-        self.eliminar_dropdown = ft.Dropdown(
-            label="Eliminar operador",
-            width=300,
-            options=[ft.dropdown.Option(nombre) for nombre in self.app_state.operador_manager.obtener_nombres()],
-            **InputStyles.dropdown(self.app_state.is_dark_theme)
-        )
+        self.cargo_dropdown = ft.Dropdown(label="Cargo", width=300, options=[ft.dropdown.Option(c) for c in cargos], value=cargos[0] if cargos else None, **InputStyles.dropdown(self.app_state.is_dark_theme))
+        self.jerarquia_dropdown = ft.Dropdown(label="Jerarquía", width=300, options=[ft.dropdown.Option(j) for j in JERARQUIAS], value=JERARQUIAS[0], **InputStyles.dropdown(self.app_state.is_dark_theme))
+        self.eliminar_dropdown = ft.Dropdown(label="Eliminar operador", width=300, options=[ft.dropdown.Option(n) for n in self.app_state.operador_manager.obtener_nombres()], **InputStyles.dropdown(self.app_state.is_dark_theme))
 
     def show(self, e=None):
-        """Crea y muestra el diálogo."""
         self._create_form_fields()
         dialog_style = ContainerStyles.dialog(self.app_state.is_dark_theme)
         self.dialog = ft.AlertDialog(
-            modal=True,
-            title=ft.Text("Gestión de Operadores", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
+            modal=True, title=ft.Text("Gestión de Operadores", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
             content=ft.Column([
                 self.nombre_field, self.cedula_field, self.cargo_dropdown, self.jerarquia_dropdown,
                 ft.Row([ft.ElevatedButton("Añadir", on_click=self._agregar_operador, style=ButtonStyles.primary())], alignment="center"),
-                ft.Divider(),
-                self.eliminar_dropdown,
+                ft.Divider(), self.eliminar_dropdown,
                 ft.Row([ft.ElevatedButton("Eliminar", on_click=self._eliminar_operador, style=ButtonStyles.danger())], alignment="center")
             ], scroll=ft.ScrollMode.ADAPTIVE, spacing=10, width=300, height=400),
             actions=[ft.ElevatedButton("Cerrar", on_click=self._cerrar_dialog, style=ButtonStyles.secondary(self.app_state.is_dark_theme))],
-            actions_alignment="center",
-            bgcolor=dialog_style.get("bgcolor"),
+            actions_alignment="center", bgcolor=dialog_style.get("bgcolor"),
             shape=ft.RoundedRectangleBorder(radius=dialog_style.get("border_radius", 0))
         )
         self.page.open(self.dialog)
 
     def _agregar_operador(self, e):
-        nombre = self.nombre_field.value.strip()
-        cedula = self.cedula_field.value.strip()
-        cargo = self.cargo_dropdown.value
-        jerarquia = self.jerarquia_dropdown.value
-        if self.app_state.operador_manager.agregar_operador(nombre, cargo, jerarquia, cedula):
+        if self.app_state.operador_manager.agregar_operador(self.nombre_field.value.strip(), self.cargo_dropdown.value, self.jerarquia_dropdown.value, self.cedula_field.value.strip()):
             self.operator_selector.refresh_options()
             self._refresh_delete_dropdown()
-            self.nombre_field.value = ""
-            self.cedula_field.value = ""
+            self.nombre_field.value, self.cedula_field.value = "", ""
             self._show_snackbar("Operador añadido", Colors.SUCCESS)
-        else:
-            self._show_snackbar("Error: Verifique los datos o si el operador ya existe", Colors.ERROR)
+        else: self._show_snackbar("Error: Verifique los datos o si el operador ya existe", Colors.ERROR)
         self.page.update()
 
     def _eliminar_operador(self, e):
-        nombre = self.eliminar_dropdown.value
-        if nombre and self.app_state.operador_manager.eliminar_operador(nombre):
+        if self.eliminar_dropdown.value and self.app_state.operador_manager.eliminar_operador(self.eliminar_dropdown.value):
             self.operator_selector.refresh_options()
             self._refresh_delete_dropdown()
             self._show_snackbar("Operador eliminado", Colors.WARNING)
-        else:
-            self._show_snackbar("Error al eliminar operador", Colors.ERROR)
+        else: self._show_snackbar("Error al eliminar operador", Colors.ERROR)
         self.page.update()
 
     def _refresh_delete_dropdown(self):
-        nombres = self.app_state.operador_manager.obtener_nombres()
-        self.eliminar_dropdown.options = [ft.dropdown.Option(nombre) for nombre in nombres]
+        self.eliminar_dropdown.options = [ft.dropdown.Option(n) for n in self.app_state.operador_manager.obtener_nombres()]
         self.eliminar_dropdown.value = None
         self.dialog.content.update()
 
-    def _cerrar_dialog(self, e):
-        self.page.close(self.dialog)
-
-    def _show_snackbar(self, mensaje: str, color):
-        self.page.open(ft.SnackBar(ft.Text(mensaje, color=color)))
-
+    def _cerrar_dialog(self, e): self.page.close(self.dialog)
+    def _show_snackbar(self, m: str, c): self.page.open(ft.SnackBar(ft.Text(m, color=c)))
 
 class ActionButtons(ft.FilledButton):
-    """Botón de acción para copiar el reporte."""
-
-    def __init__(self, app_state: AppState, page: ft.Page):
+    def __init__(self, app_state: AppState, page: ft.Page, on_copy: Callable):
         self.app_state = app_state
         self.page = page
+        self.on_copy = on_copy
         super().__init__(
-            text="Copiar al Portapapeles",
-            icon=ft.Icons.CONTENT_COPY,
-            on_click=self._copy_report,
-            style=ButtonStyles.primary()
+            text="Copiar al Portapapeles", icon=ft.Icons.CONTENT_COPY,
+            on_click=self._copy_report_clicked, style=ButtonStyles.primary()
         )
 
-    def _copy_report(self, e):
-        reporte = self.app_state.generar_reporte_actual()
-        self.page.set_clipboard(reporte)
-        self.page.open(ft.SnackBar(ft.Text("¡Reporte copiado!", color=Colors.SUCCESS)))
+    def _copy_report_clicked(self, e):
+        self.on_copy()
