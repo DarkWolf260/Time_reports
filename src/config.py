@@ -18,8 +18,8 @@ DEFAULT_OPERATORS = [
 
 # Configuración de la ventana
 WINDOW_CONFIG = {
-    "width": 1000,
-    "height": 900,
+    "width": 1700,
+    "height": 800,
     "resizable": True,
     "maximizable": True,
     "title": "Reporte Meteorológico Estadal"

@@ -59,8 +59,8 @@ class WeatherReportApp:
         """Construye la interfaz de usuario."""
         ejes_row = ft.Row(
             controls=self.eje_cards,
-            expand=1,
-            vertical_alignment=ft.CrossAxisAlignment.STRETCH
+            scroll=ft.ScrollMode.ADAPTIVE,
+            spacing=10
         )
 
         controles_card = ft.Container(
@@ -86,7 +86,7 @@ class WeatherReportApp:
             ],
             expand=True,
             spacing=10,
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            alignment=ft.MainAxisAlignment.CENTER,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER
         )
 
