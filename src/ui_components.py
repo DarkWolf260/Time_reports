@@ -40,18 +40,9 @@ class ReportEntryRow(ft.Row):
             **InputStyles.dropdown(self.app_state.is_dark_theme)
         )
 
-        self.delete_button = ft.ElevatedButton(
-            text="",
-            icon=ft.icons.DELETE_OUTLINE,
-            on_click=self._delete_clicked,
-            visible=not self._is_first_entry,
-            tooltip="Eliminar línea",
-            style=ft.ButtonStyle(
-                shape=ft.CircleBorder(),
-                padding=ft.padding.all(5),
-                bgcolor=Colors.ERROR,
-                color="white",
-            )
+        self.delete_button = ft.IconButton(
+            icon=ft.Icons.DELETE_OUTLINE, icon_color=Colors.ERROR,
+            on_click=self._delete_clicked, visible=not self._is_first_entry, tooltip="Eliminar línea"
         )
 
         self.controls = [self.time_field, self.weather_dropdown, self.delete_button]
@@ -157,22 +148,10 @@ class EjeCard(ft.Container):
             self._rebuild_entries(municipio)
             self.update()
 
-        add_button = ft.ElevatedButton(
-            text="",
-            icon=ft.icons.ADD,
-            on_click=add_entry,
-            tooltip="Añadir línea",
-            style=ft.ButtonStyle(
-                shape=ft.CircleBorder(),
-                padding=ft.padding.all(5),
-                bgcolor=Colors.SUCCESS, # Using SUCCESS color for add
-                color="white",
-            )
-        )
         return ft.Column([
             ft.Row([
                 ft.Text(municipio, weight=ft.FontWeight.BOLD, expand=True),
-                add_button
+                ft.IconButton(icon=ft.Icons.ADD_CIRCLE_OUTLINE, on_click=add_entry, tooltip="Añadir línea")
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             entries_container,
             ft.Divider(height=5, thickness=0.5)
