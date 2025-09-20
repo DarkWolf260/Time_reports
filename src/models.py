@@ -14,7 +14,7 @@ from config import TIEMPO, DEPARTAMENTO, EJES
 class ReportEntry:
     """Modelo para una línea de reporte de un municipio."""
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    indice_tiempo: int = 0
+    indice_tiempo: Optional[int] = None
     hora: str = "" # e.g., "14:30"
 
     def to_dict(self) -> Dict[str, Any]:
@@ -22,7 +22,7 @@ class ReportEntry:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'ReportEntry':
-        return cls(id=data.get("id", str(uuid.uuid4())), indice_tiempo=data.get("indice_tiempo", 0), hora=data.get("hora", ""))
+        return cls(id=data.get("id", str(uuid.uuid4())), indice_tiempo=data.get("indice_tiempo", None), hora=data.get("hora", ""))
 
 @dataclass
 class Operador:
@@ -107,7 +107,7 @@ class OperadorManager:
 class ReportGenerator:
     """Generador de reportes meteorológicos."""
     @staticmethod
-    def generar_reporte_estadal(estados_municipios: Dict[str, ReportEntry], operador: Optional[Operador]) -> str:
+    def generar_reporte_estadal(estados_municipios: Dict[str, List[ReportEntry]], operador: Optional[Operador]) -> str:
         fecha_actual = datetime.date.today().strftime('%d/%B/%Y').capitalize()
         hora_actual = datetime.datetime.now().strftime('%H:%M')
         operador_str = str(operador) if operador else "(Sin operador)"
@@ -122,18 +122,21 @@ class ReportGenerator:
         for eje, municipios in EJES.items():
             reporte_partes.append(f"📌 *EJE {eje}*")
             for municipio in municipios:
-                entry = estados_municipios.get(municipio)
-                if not entry:
+                entries = estados_municipios.get(municipio, [])
+                if not entries:
                     reporte_partes.append(f"- *{municipio.upper()}:* No se obtuvo información")
                     continue
 
-                estado_texto = TIEMPO[entry.indice_tiempo]
+                # Primera línea
+                first_entry = entries[0]
+                estado_texto = TIEMPO[first_entry.indice_tiempo] if first_entry.indice_tiempo is not None else "Sin información"
+                reporte_partes.append(f"- *{municipio.upper()}:* {estado_texto}")
 
-                # Check if there is a specific time associated with the weather event
-                if "precipitaciones" in estado_texto.lower() and entry.hora:
-                    reporte_partes.append(f"- *{municipio.upper()}:* {estado_texto} a las {entry.hora} HLV")
-                else:
-                    reporte_partes.append(f"- *{municipio.upper()}:* {estado_texto}")
+                # Líneas subsecuentes
+                for entry in entries[1:]:
+                    estado_texto = TIEMPO[entry.indice_tiempo] if entry.indice_tiempo is not None else "Sin información"
+                    hora_str = f"{entry.hora} HLV" if entry.hora else ""
+                    reporte_partes.append(f"- *{hora_str}:* {estado_texto}")
             reporte_partes.append("")
 
         reporte_partes.extend([f"- *REPORTA:* {operador_str}", "", "*SOLO QUEREMOS SALVAR VIDAS* 🚑"])
@@ -160,7 +163,7 @@ class AppState:
         self.indice_operador = 0
         self.is_dark_theme = False
         self.departamento = DEPARTAMENTO
-        self.estados_municipios: Dict[str, ReportEntry] = {}
+        self.estados_municipios: Dict[str, List[ReportEntry]] = {}
         self._inicializar_estados()
         self._set_default_operator()
 
@@ -168,14 +171,23 @@ class AppState:
         """Inicializa el estado con una entrada por defecto para cada municipio."""
         for eje, municipios in EJES.items():
             for municipio in municipios:
-                self.estados_municipios[municipio] = ReportEntry()
+                self.estados_municipios[municipio] = [ReportEntry()]
 
-    def update_report_line(self, municipio: str, new_indice: int, new_hora: str):
-        """Actualiza la entrada de reporte para un municipio específico."""
+    def add_report_line(self, municipio: str):
         if municipio in self.estados_municipios:
-            entry = self.estados_municipios[municipio]
-            entry.indice_tiempo = new_indice
-            entry.hora = new_hora
+            self.estados_municipios[municipio].append(ReportEntry())
+
+    def update_report_line(self, municipio: str, line_id: str, new_indice: Optional[int], new_hora: str):
+        if municipio in self.estados_municipios:
+            for entry in self.estados_municipios[municipio]:
+                if entry.id == line_id:
+                    entry.indice_tiempo = new_indice
+                    entry.hora = new_hora
+                    break
+
+    def remove_report_line(self, municipio: str, line_id: str):
+        if municipio in self.estados_municipios and len(self.estados_municipios[municipio]) > 1:
+            self.estados_municipios[municipio] = [entry for entry in self.estados_municipios[municipio] if entry.id != line_id]
 
     def _set_default_operator(self):
         default_operator_name = "Rubén Rojas"
