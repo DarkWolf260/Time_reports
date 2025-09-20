@@ -41,6 +41,7 @@ class ReportEntryRow(ft.Row):
         )
 
         self.delete_button = ft.ElevatedButton(
+            text="",
             icon=ft.icons.DELETE_OUTLINE,
             on_click=self._delete_clicked,
             visible=not self._is_first_entry,
@@ -157,6 +158,7 @@ class EjeCard(ft.Container):
             self.update()
 
         add_button = ft.ElevatedButton(
+            text="",
             icon=ft.icons.ADD,
             on_click=add_entry,
             tooltip="Añadir línea",
