@@ -6,7 +6,7 @@ import flet as ft
 import json
 from models import AppState
 from ui_components import (
-    CustomAppBar, OperatorSelector, ActionButtons,
+    CustomAppBar, OperatorSelector,
     OperatorManagementDialog, EjeCard
 )
 from styles import ThemeManager, TextStyles, ContainerStyles, Colors
@@ -39,9 +39,14 @@ class WeatherReportApp:
         """Crea los componentes de la interfaz."""
         self.operator_selector = OperatorSelector(self.app_state, self._on_data_change)
         self.operator_management_dialog = OperatorManagementDialog(self.app_state, self.operator_selector, self.page)
-        self.app_bar = CustomAppBar(self.app_state, self._on_theme_toggle, self.operator_management_dialog.show)
+        self.app_bar = CustomAppBar(
+            self.app_state,
+            self._on_theme_toggle,
+            self.operator_management_dialog.show,
+            self.operator_selector,
+            self._handle_copy_report
+        )
         self.page.appbar = self.app_bar.app_bar
-        self.action_buttons = ActionButtons(self.app_state, self.page, on_copy=self._handle_copy_report)
         self.eje_cards = [
             ft.Container(content=EjeCard(self.app_state, nombre, municipios), expand=True)
             for nombre, municipios in EJES.items()
@@ -55,16 +60,9 @@ class WeatherReportApp:
             expand=True,
             vertical_alignment=ft.CrossAxisAlignment.STRETCH
         )
-        controles_card = ft.Container(
-            content=ft.Column(
-                [self.operator_selector, self.action_buttons],
-                spacing=10, horizontal_alignment=ft.CrossAxisAlignment.CENTER, tight=True
-            ),
-            **ContainerStyles.card(self.app_state.is_dark_theme),
-        )
         credits = ft.Text("Creado por: Rubén Rojas", style=TextStyles.caption(self.app_state.is_dark_theme))
         main_column = ft.Column(
-            [ejes_row, controles_card, ft.Row([credits], alignment=ft.MainAxisAlignment.CENTER)],
+            [ejes_row, ft.Row([credits], alignment=ft.MainAxisAlignment.CENTER)],
             expand=True, spacing=10, alignment=ft.MainAxisAlignment.START,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER
         )

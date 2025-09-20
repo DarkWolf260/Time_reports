@@ -81,7 +81,8 @@ class EjeCard(ft.Container):
         municipio_cols = [self._create_municipio_view(m) for m in self.municipios]
         return ft.Column(
             [ft.Text(f"📌 EJE {self.eje_nombre}", style=TextStyles.subtitle(self.app_state.is_dark_theme)), ft.Divider()] + municipio_cols,
-            expand=True
+            expand=True,
+            scroll=ft.ScrollMode.HIDDEN
         )
 
     def _create_municipio_view(self, municipio: str) -> ft.Column:
@@ -129,29 +130,59 @@ class EjeCard(ft.Container):
 # --- Componentes restantes (CustomAppBar, OperatorSelector, etc.) ---
 
 class CustomAppBar:
-    def __init__(self, app_state: AppState, on_theme_change: Callable, on_manage_operators: Callable):
+    def __init__(self, app_state: AppState, on_theme_change: Callable, on_manage_operators: Callable, operator_selector: 'OperatorSelector', on_copy: Callable):
         self.app_state = app_state
         self.on_theme_change = on_theme_change
         self.on_manage_operators = on_manage_operators
+        self.operator_selector = operator_selector
+        self.on_copy = on_copy
         self.app_bar = self._create_app_bar()
 
     def _create_app_bar(self) -> ft.AppBar:
         is_dark = self.app_state.is_dark_theme
+        self.operator_selector.width = 300
+        self.operator_selector.label = ""
+        self.operator_selector.hint_text = "Operador que reporta"
+
+        title_row = ft.Row(
+            [
+                ft.Image(src="icon.png", width=30, height=30),
+                ft.Text(WINDOW_CONFIG["title"], style=TextStyles.subtitle(is_dark)),
+                self.operator_selector,
+            ],
+            spacing=20,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            expand=True
+        )
+
+        copy_button = ft.IconButton(
+            icon=ft.Icons.CONTENT_COPY,
+            tooltip="Copiar al Portapapeles",
+            on_click=lambda _: self.on_copy()
+        )
+
         return ft.AppBar(
-            leading=ft.Image(src="icon.png", width=30, height=30),
-            title=ft.Text(WINDOW_CONFIG["title"], style=TextStyles.subtitle(is_dark)),
+            leading_width=0,
+            title=title_row,
             bgcolor=ContainerStyles.card(is_dark)["bgcolor"],
-            actions=[ft.PopupMenuButton(items=[
-                ft.PopupMenuItem(text="Cambiar Tema", icon=ThemeManager.get_theme_icon(is_dark), on_click=lambda _: self.on_theme_change()),
-                ft.PopupMenuItem(text="Gestionar Operadores", icon=ft.Icons.MANAGE_ACCOUNTS, on_click=lambda _: self.on_manage_operators()),
-            ])]
+            actions=[
+                copy_button,
+                ft.PopupMenuButton(items=[
+                    ft.PopupMenuItem(text="Cambiar Tema", icon=ThemeManager.get_theme_icon(is_dark), on_click=lambda _: self.on_theme_change()),
+                    ft.PopupMenuItem(text="Gestionar Operadores", icon=ft.Icons.MANAGE_ACCOUNTS, on_click=lambda _: self.on_manage_operators()),
+                ]),
+            ],
         )
 
     def update_theme(self):
         is_dark = self.app_state.is_dark_theme
-        self.app_bar.title.style = TextStyles.subtitle(is_dark)
+        title_text = self.app_bar.title.controls[1]
+        title_text.style = TextStyles.subtitle(is_dark)
         self.app_bar.bgcolor = ContainerStyles.card(is_dark)["bgcolor"]
-        self.app_bar.actions[0].items[0].icon = ThemeManager.get_theme_icon(is_dark)
+        # The PopupMenu is now the second action
+        self.app_bar.actions[1].items[0].icon = ThemeManager.get_theme_icon(is_dark)
+        self.operator_selector.update_theme()
+
 
 class OperatorSelector(ft.Dropdown):
     def __init__(self, app_state: AppState, on_change: Callable):
@@ -175,6 +206,13 @@ class OperatorSelector(ft.Dropdown):
         self.options = [ft.dropdown.Option(nombre) for nombre in nombres]
         self.value = nombres[self.app_state.indice_operador] if nombres and 0 <= self.app_state.indice_operador < len(nombres) else None
         self.update()
+
+    def update_theme(self):
+        style = InputStyles.dropdown(self.app_state.is_dark_theme)
+        for key, value in style.items():
+            setattr(self, key, value)
+        self.update()
+
 
 class OperatorManagementDialog:
     def __init__(self, app_state: AppState, operator_selector: OperatorSelector, page: ft.Page):
@@ -233,16 +271,3 @@ class OperatorManagementDialog:
 
     def _cerrar_dialog(self, e): self.page.close(self.dialog)
     def _show_snackbar(self, m: str, c): self.page.open(ft.SnackBar(ft.Text(m, color=c)))
-
-class ActionButtons(ft.FilledButton):
-    def __init__(self, app_state: AppState, page: ft.Page, on_copy: Callable):
-        self.app_state = app_state
-        self.page = page
-        self.on_copy = on_copy
-        super().__init__(
-            text="Copiar al Portapapeles", icon=ft.Icons.CONTENT_COPY,
-            on_click=self._copy_report_clicked, style=ButtonStyles.primary()
-        )
-
-    def _copy_report_clicked(self, e):
-        self.on_copy()
