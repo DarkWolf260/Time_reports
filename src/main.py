@@ -71,8 +71,9 @@ class WeatherReportApp:
     def _handle_copy_report(self):
         """Valida todas las entradas y copia el reporte si son válidas."""
         all_valid = True
-        for card in self.eje_cards:
-            if not card.validate():
+        for container in self.eje_cards:
+            eje_card = container.content
+            if not eje_card.validate():
                 all_valid = False
 
         if all_valid:

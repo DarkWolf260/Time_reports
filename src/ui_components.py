@@ -17,14 +17,14 @@ class ReportEntryRow(ft.Row):
         self.municipio = municipio
         self.entry = entry
         self.on_delete_callback = on_delete
-        self.page = app_state.page # For updates
+        self.page = app_state.page
 
         self._is_first_entry = self.app_state.estados_municipios[self.municipio][0].id == self.entry.id
 
         self.time_field = ft.TextField(
             label="Hora", width=80, value=self.entry.hora,
             on_blur=self._on_data_change,
-            on_change=self._on_time_change, # Time formatting
+            on_change=self._on_time_change,
             **InputStyles.textfield(self.app_state.is_dark_theme)
         )
 
@@ -49,7 +49,6 @@ class ReportEntryRow(ft.Row):
         self._update_time_field_visibility()
 
     def _on_time_change(self, e):
-        """Auto-formats the time field to HH:MM and limits digits."""
         tf = e.control
         digits = "".join(filter(str.isdigit, tf.value))[:4]
         if len(digits) > 2:
@@ -63,23 +62,18 @@ class ReportEntryRow(ft.Row):
     def _on_data_change(self, e=None):
         dropdown_val = self.weather_dropdown.value
         new_indice = int(dropdown_val) if dropdown_val and dropdown_val != "-1" else None
-
         self.app_state.update_report_line(
-            self.municipio, self.entry.id,
-            new_indice, self.time_field.value
+            self.municipio, self.entry.id, new_indice, self.time_field.value
         )
         self._update_time_field_visibility()
-        if self.page:
-            self.page.update()
+        if self.page: self.page.update()
 
     def _update_time_field_visibility(self):
         dropdown_val = self.weather_dropdown.value
         indice = int(dropdown_val) if dropdown_val and dropdown_val != "-1" else None
-
         if indice is None:
             self.time_field.visible = not self._is_first_entry
             return
-
         selected_text = TIEMPO[indice].lower()
         is_precipitation = "precipitaciones" in selected_text
         self.time_field.visible = not self._is_first_entry or is_precipitation
@@ -88,50 +82,38 @@ class ReportEntryRow(ft.Row):
         self.on_delete_callback(self.entry.id)
 
     def validate(self) -> bool:
-        # Weather validation
         is_valid = self.weather_dropdown.value is not None and self.weather_dropdown.value != "-1"
         self.weather_dropdown.border_color = Colors.ERROR if not is_valid else None
-
-        # Time validation
-        time_valid = True # Assume valid if empty
+        time_valid = True
         time_val = self.time_field.value
-        if time_val: # Only validate if not empty
+        if time_val:
             time_valid = False
             if re.match(r"^\d{2}:\d{2}$", time_val):
                 try:
                     h, m = map(int, time_val.split(':'))
                     if 0 <= h <= 23 and 0 <= m <= 59:
                         time_valid = True
-                except ValueError:
-                    time_valid = False
-
+                except ValueError: time_valid = False
         if not time_valid:
              self.time_field.error_text = "Hora inválida"
              is_valid = False
-        else:
-             self.time_field.error_text = None
-
+        else: self.time_field.error_text = None
         self.update()
         return is_valid
 
 class EjeCard(ft.Container):
-    """Tarjeta que contiene los controles para un eje geográfico."""
     def __init__(self, app_state: AppState, eje_nombre: str, municipios: List[str]):
         super().__init__()
         self.app_state = app_state
         self.eje_nombre = eje_nombre
         self.municipios = municipios
-        self.entry_controls = {} # Almacena las columnas de entradas por municipio
-
-        # Configuración del contenedor principal
+        self.entry_controls = {}
         self.padding = ContainerStyles.card(self.app_state.is_dark_theme).get("padding")
         self.bgcolor = ContainerStyles.card(self.app_state.is_dark_theme).get("bgcolor")
         self.border_radius = ContainerStyles.card(self.app_state.is_dark_theme).get("border_radius")
-
         self.content = self._build()
 
     def _build(self):
-        """Construye el contenido de la tarjeta del eje con un encabezado fijo."""
         header = ft.Column(
             controls=[
                 ft.Text(f"📌 EJE {self.eje_nombre}", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
@@ -139,30 +121,17 @@ class EjeCard(ft.Container):
             ],
             spacing=5
         )
-
         municipio_cols = [self._create_municipio_view(m) for m in self.municipios]
-
-        scrollable_content = ft.Column(
-            controls=municipio_cols,
-            scroll=ft.ScrollMode.HIDDEN,
-            expand=True
-        )
-
-        return ft.Column(
-            controls=[header, scrollable_content],
-            expand=True
-        )
+        scrollable_content = ft.Column(controls=municipio_cols, scroll=ft.ScrollMode.HIDDEN, expand=True)
+        return ft.Column(controls=[header, scrollable_content], expand=True)
 
     def _create_municipio_view(self, municipio: str) -> ft.Column:
         entries_container = ft.Column()
         self.entry_controls[municipio] = entries_container
         self._rebuild_entries(municipio)
-
         def add_entry(e):
             self.app_state.add_report_line(municipio)
             self._rebuild_entries(municipio)
-            self.update()
-
         return ft.Column([
             ft.Row([
                 ft.Text(municipio, weight=ft.FontWeight.BOLD, expand=True),
@@ -176,26 +145,20 @@ class EjeCard(ft.Container):
         container = self.entry_controls[municipio]
         container.controls.clear()
         for entry in self.app_state.estados_municipios.get(municipio, []):
-            row = ReportEntryRow(
-                self.app_state, municipio, entry,
-                on_delete=lambda entry_id: self._delete_entry(municipio, entry_id)
-            )
-            container.controls.append(row)
+            container.controls.append(ReportEntryRow(self.app_state, municipio, entry, lambda entry_id: self._delete_entry(municipio, entry_id)))
+        if self.app_state.page: self.app_state.page.update()
 
     def _delete_entry(self, municipio: str, entry_id: str):
         self.app_state.remove_report_line(municipio, entry_id)
         self._rebuild_entries(municipio)
-        self.update()
 
     def validate(self) -> bool:
         is_valid = True
-        for municipio_container in self.entry_controls.values():
-            for row in municipio_container.controls:
-                if isinstance(row, ReportEntryRow) and not row.validate():
-                    is_valid = False
+        for entries_container in self.entry_controls.values():
+            for row in entries_container.controls:
+              if isinstance(row, ReportEntryRow) and not row.validate():
+                is_valid = False
         return is_valid
-
-# --- Componentes restantes (CustomAppBar, OperatorSelector, etc.) ---
 
 class CustomAppBar:
     def __init__(self, app_state: AppState, on_theme_change: Callable, on_manage_operators: Callable, operator_selector: 'OperatorSelector', on_copy: Callable):
@@ -208,34 +171,21 @@ class CustomAppBar:
 
     def _create_app_bar(self) -> ft.AppBar:
         is_dark = self.app_state.is_dark_theme
-
-        copy_button = ft.FilledButton(
-            text="Copiar",
-            icon=ft.icons.CONTENT_COPY,
-            on_click=lambda _: self.on_copy(),
-            style=ButtonStyles.primary()
-        )
-
-        # --- Title Row with Spacer ---
+        copy_button = ft.FilledButton(text="Copiar", icon=ft.icons.CONTENT_COPY, on_click=lambda _: self.on_copy(), style=ButtonStyles.primary())
         self.operator_selector.width = 300
         self.operator_selector.label = ""
         self.operator_selector.hint_text = "Operador que reporta"
-
         title_row = ft.Row(
             [
                 ft.Image(src="icon.png", width=30, height=30),
                 ft.Text(WINDOW_CONFIG["title"], style=TextStyles.subtitle(is_dark)),
-                ft.Container(expand=True),  # Spacer
+                ft.Container(expand=True),
                 self.operator_selector
             ],
-            spacing=20,
-            vertical_alignment=ft.CrossAxisAlignment.CENTER
+            spacing=20, vertical_alignment=ft.CrossAxisAlignment.CENTER
         )
-
         return ft.AppBar(
-            leading_width=0,
-            title=title_row,
-            bgcolor=ContainerStyles.card(is_dark)["bgcolor"],
+            leading_width=0, title=title_row, bgcolor=ContainerStyles.card(is_dark)["bgcolor"],
             actions=[
                 copy_button,
                 ft.PopupMenuButton(items=[
@@ -250,16 +200,9 @@ class CustomAppBar:
         title_text = self.app_bar.title.controls[1]
         title_text.style = TextStyles.subtitle(is_dark)
         self.app_bar.bgcolor = ContainerStyles.card(is_dark)["bgcolor"]
-
-        # Update theme icon in PopupMenu
         self.app_bar.actions[1].items[0].icon = ThemeManager.get_theme_icon(is_dark)
-
-        # Update copy button style
         self.app_bar.actions[0].style = ButtonStyles.primary()
-
-        # Update operator selector theme
         self.operator_selector.update_theme()
-
 
 class OperatorSelector(ft.Dropdown):
     def __init__(self, app_state: AppState, on_change: Callable):
@@ -289,7 +232,6 @@ class OperatorSelector(ft.Dropdown):
         for key, value in style.items():
             setattr(self, key, value)
         self.update()
-
 
 class OperatorManagementDialog:
     def __init__(self, app_state: AppState, operator_selector: OperatorSelector, page: ft.Page):
