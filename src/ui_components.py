@@ -71,7 +71,6 @@ class EjeCard(ft.Container):
         self.entry_controls = {} # Almacena las columnas de entradas por municipio
 
         # Configuración del contenedor principal
-        self.expand = True
         self.padding = ContainerStyles.card(self.app_state.is_dark_theme).get("padding")
         self.bgcolor = ContainerStyles.card(self.app_state.is_dark_theme).get("bgcolor")
         self.border_radius = ContainerStyles.card(self.app_state.is_dark_theme).get("border_radius")
@@ -82,7 +81,6 @@ class EjeCard(ft.Container):
         municipio_cols = [self._create_municipio_view(m) for m in self.municipios]
         return ft.Column(
             [ft.Text(f"📌 EJE {self.eje_nombre}", style=TextStyles.subtitle(self.app_state.is_dark_theme)), ft.Divider()] + municipio_cols,
-            scroll=ft.ScrollMode.HIDDEN,
             expand=True
         )
 

@@ -42,14 +42,18 @@ class WeatherReportApp:
         self.app_bar = CustomAppBar(self.app_state, self._on_theme_toggle, self.operator_management_dialog.show)
         self.page.appbar = self.app_bar.app_bar
         self.action_buttons = ActionButtons(self.app_state, self.page, on_copy=self._handle_copy_report)
-        self.eje_cards = [EjeCard(self.app_state, nombre, municipios) for nombre, municipios in EJES.items()]
+        self.eje_cards = [
+            ft.Container(content=EjeCard(self.app_state, nombre, municipios), expand=True)
+            for nombre, municipios in EJES.items()
+        ]
 
     def _build_ui(self):
         """Construye la interfaz de usuario."""
         ejes_row = ft.Row(
             controls=self.eje_cards,
             spacing=10,
-            expand=True
+            expand=True,
+            vertical_alignment=ft.CrossAxisAlignment.STRETCH
         )
         controles_card = ft.Container(
             content=ft.Column(
@@ -61,7 +65,7 @@ class WeatherReportApp:
         credits = ft.Text("Creado por: Rubén Rojas", style=TextStyles.caption(self.app_state.is_dark_theme))
         main_column = ft.Column(
             [ejes_row, controles_card, ft.Row([credits], alignment=ft.MainAxisAlignment.CENTER)],
-            expand=True, spacing=10, alignment=ft.MainAxisAlignment.CENTER,
+            expand=True, spacing=10, alignment=ft.MainAxisAlignment.START,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER
         )
         self.page.add(main_column)
