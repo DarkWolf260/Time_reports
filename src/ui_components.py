@@ -194,17 +194,6 @@ class CustomAppBar:
     def _create_app_bar(self) -> ft.AppBar:
         is_dark = self.app_state.is_dark_theme
 
-        # --- New Actions ---
-        theme_button = ft.IconButton(
-            icon=ThemeManager.get_theme_icon(is_dark),
-            tooltip="Cambiar Tema",
-            on_click=lambda _: self.on_theme_change()
-        )
-        manage_button = ft.IconButton(
-            icon=ft.Icons.MANAGE_ACCOUNTS,
-            tooltip="Gestionar Operadores",
-            on_click=lambda _: self.on_manage_operators()
-        )
         copy_button = ft.FilledButton(
             text="Copiar",
             icon=ft.icons.CONTENT_COPY,
@@ -232,7 +221,13 @@ class CustomAppBar:
             leading_width=0,
             title=title_row,
             bgcolor=ContainerStyles.card(is_dark)["bgcolor"],
-            actions=[copy_button, theme_button, manage_button],
+            actions=[
+                copy_button,
+                ft.PopupMenuButton(items=[
+                    ft.PopupMenuItem(text="Cambiar Tema", icon=ThemeManager.get_theme_icon(is_dark), on_click=lambda _: self.on_theme_change()),
+                    ft.PopupMenuItem(text="Gestionar Operadores", icon=ft.Icons.MANAGE_ACCOUNTS, on_click=lambda _: self.on_manage_operators()),
+                ]),
+            ],
         )
 
     def update_theme(self):
@@ -241,8 +236,8 @@ class CustomAppBar:
         title_text.style = TextStyles.subtitle(is_dark)
         self.app_bar.bgcolor = ContainerStyles.card(is_dark)["bgcolor"]
 
-        # Update theme button icon (now at index 1)
-        self.app_bar.actions[1].icon = ThemeManager.get_theme_icon(is_dark)
+        # Update theme icon in PopupMenu
+        self.app_bar.actions[1].items[0].icon = ThemeManager.get_theme_icon(is_dark)
 
         # Update copy button style
         self.app_bar.actions[0].style = ButtonStyles.primary()

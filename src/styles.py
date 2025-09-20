@@ -173,6 +173,7 @@ class InputStyles:
             "border_radius": BORDER_RADIUS["control"],
             "border_color": Colors.DARK["border"] if is_dark_theme else Colors.LIGHT["border"],
             "focused_border_color": Colors.PRIMARY,
+            "content_padding": ft.padding.symmetric(vertical=8, horizontal=10),
             "text_style": ft.TextStyle(
                 size=16,
                 color=Colors.DARK["on_surface"] if is_dark_theme else Colors.LIGHT["on_surface"],
@@ -189,6 +190,7 @@ class InputStyles:
             "border_radius": BORDER_RADIUS["control"],
             "border_color": Colors.DARK["border"] if is_dark_theme else Colors.LIGHT["border"],
             "focused_border_color": Colors.PRIMARY,
+            "content_padding": ft.padding.symmetric(vertical=8, horizontal=10),
             "text_style": ft.TextStyle(
                 color=Colors.DARK["on_surface"] if is_dark_theme else Colors.LIGHT["on_surface"],
                 font_family=FONT_FAMILY
