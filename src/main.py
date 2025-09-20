@@ -48,8 +48,8 @@ class WeatherReportApp:
         """Construye la interfaz de usuario."""
         ejes_row = ft.Row(
             controls=self.eje_cards,
-            scroll=ft.ScrollMode.ADAPTIVE,
-            spacing=10
+            spacing=10,
+            expand=True
         )
         controles_card = ft.Container(
             content=ft.Column(

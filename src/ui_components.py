@@ -71,8 +71,7 @@ class EjeCard(ft.Container):
         self.entry_controls = {} # Almacena las columnas de entradas por municipio
 
         # Configuración del contenedor principal
-        self.width = 400
-        self.height = 500
+        self.expand = True
         self.padding = ContainerStyles.card(self.app_state.is_dark_theme).get("padding")
         self.bgcolor = ContainerStyles.card(self.app_state.is_dark_theme).get("bgcolor")
         self.border_radius = ContainerStyles.card(self.app_state.is_dark_theme).get("border_radius")
