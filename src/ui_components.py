@@ -3,61 +3,88 @@
 Componentes de interfaz de usuario reutilizables para la aplicación de reportes estadales.
 """
 import flet as ft
+import re
 from typing import Callable, List
 from models import AppState, Operador, ReportEntry
 from styles import TextStyles, ButtonStyles, ContainerStyles, InputStyles, Colors, ThemeManager
 from config import NOMBRES_TIEMPO, TIEMPO, EMOJI_TIEMPO, JERARQUIAS, WINDOW_CONFIG, get_cargos
 
-class ReportEntryRow(ft.Row):
-    """Representa una única línea de entrada de reporte para un municipio."""
-    def __init__(self, app_state: AppState, municipio: str, entry: ReportEntry, on_delete: Callable):
-        super().__init__(spacing=5, vertical_alignment=ft.CrossAxisAlignment.CENTER)
+class MunicipalityEntry(ft.Row):
+    """Representa la línea de entrada de reporte para un único municipio."""
+    def __init__(self, app_state: AppState, municipio: str):
+        super().__init__(vertical_alignment=ft.CrossAxisAlignment.CENTER, spacing=5)
         self.app_state = app_state
         self.municipio = municipio
-        self.entry = entry
-        self.on_delete_callback = on_delete
+        self.entry = self.app_state.estados_municipios[self.municipio]
 
-        self._is_first_entry = self.app_state.estados_municipios[self.municipio][0].id == self.entry.id
-
-        self.time_field = ft.TextField(
-            label="Hora", width=80, value=self.entry.hora,
-            on_blur=self._on_data_change,
-            **InputStyles.textfield(self.app_state.is_dark_theme)
-        )
         self.weather_dropdown = ft.Dropdown(
             options=[ft.dropdown.Option(key=str(i), text=f"{EMOJI_TIEMPO[i]} {nombre}") for i, nombre in enumerate(NOMBRES_TIEMPO)],
-            value=str(self.entry.indice_tiempo), width=240,
+            value=str(self.entry.indice_tiempo),
+            width=200,
             on_change=self._on_data_change,
             **InputStyles.dropdown(self.app_state.is_dark_theme)
         )
-        self.delete_button = ft.IconButton(
-            icon=ft.Icons.DELETE_OUTLINE, icon_color=Colors.ERROR,
-            on_click=self._delete_clicked, visible=not self._is_first_entry, tooltip="Eliminar línea"
+
+        self.time_field = ft.TextField(
+            value=self.entry.hora or "00:00",
+            width=120,
+            hint_text="HH:MM",
+            suffix_text="HLV",
+            on_blur=self._on_data_change,
+            on_change=self._clean_time_input,
+            **InputStyles.textfield(self.app_state.is_dark_theme)
         )
 
-        self.controls = [self.time_field, self.weather_dropdown, self.delete_button]
-        self._update_time_field_visibility()
+        self.controls = [
+            ft.Text(self.municipio, weight=ft.FontWeight.BOLD, expand=True),
+            self.weather_dropdown,
+            self.time_field,
+        ]
+
+    def _clean_time_input(self, e):
+        """Limpia y formatea la entrada del campo de tiempo mientras se escribe."""
+        tf = e.control
+        # Allow only digits and one colon
+        clean_value = "".join(filter(lambda char: char.isdigit() or char == ':', tf.value))
+        if clean_value.count(':') > 1:
+            parts = clean_value.split(':', 2)
+            clean_value = parts[0] + ":" + "".join(parts[1:])
+        tf.value = clean_value[:5]  # Max length HH:MM
+        tf.update()
 
     def _on_data_change(self, e=None):
+        """Actualiza el estado de la aplicación cuando cambia un valor."""
+        # Remove suffix before saving to model
+        time_value = self.time_field.value.replace(" HLV", "").strip()
         self.app_state.update_report_line(
-            self.municipio, self.entry.id,
-            int(self.weather_dropdown.value), self.time_field.value
+            self.municipio,
+            int(self.weather_dropdown.value),
+            time_value
         )
-        self._update_time_field_visibility()
-        self.page.update()
-
-    def _update_time_field_visibility(self):
-        selected_text = TIEMPO[int(self.weather_dropdown.value)].lower()
-        is_precipitation = "precipitaciones" in selected_text
-        # La primera línea no lleva hora, las demás sí
-        self.time_field.visible = not self._is_first_entry or is_precipitation
-
-    def _delete_clicked(self, e):
-        self.on_delete_callback(self.entry.id)
 
     def validate(self) -> bool:
+        """Valida los campos de entrada de esta fila."""
+        # Weather validation
         is_valid = self.weather_dropdown.value != "0"
         self.weather_dropdown.border_color = Colors.ERROR if not is_valid else None
+
+        # Time validation
+        time_valid = False
+        time_val = self.time_field.value
+        if re.match(r"^\d{2}:\d{2}$", time_val):
+            try:
+                h, m = map(int, time_val.split(':'))
+                if 0 <= h <= 23 and 0 <= m <= 59:
+                    time_valid = True
+            except ValueError:
+                time_valid = False
+
+        if not time_valid:
+            self.time_field.error_text = "Hora inválida"
+            is_valid = False
+        else:
+            self.time_field.error_text = None
+
         self.update()
         return is_valid
 
@@ -68,63 +95,38 @@ class EjeCard(ft.Container):
         self.app_state = app_state
         self.eje_nombre = eje_nombre
         self.municipios = municipios
-        self.entry_controls = {} # Almacena las columnas de entradas por municipio
-
-        # Configuración del contenedor principal
         self.padding = ContainerStyles.card(self.app_state.is_dark_theme).get("padding")
         self.bgcolor = ContainerStyles.card(self.app_state.is_dark_theme).get("bgcolor")
         self.border_radius = ContainerStyles.card(self.app_state.is_dark_theme).get("border_radius")
 
+        self.municipio_controls = []
         self.content = self._build()
 
     def _build(self):
-        municipio_cols = [self._create_municipio_view(m) for m in self.municipios]
+        """Construye el contenido de la tarjeta del eje."""
+        municipio_entries = []
+        for municipio in self.municipios:
+            entry_row = MunicipalityEntry(self.app_state, municipio)
+            municipio_entries.append(entry_row)
+            municipio_entries.append(ft.Divider(height=5, thickness=0.5))
+
+        if municipio_entries:
+            municipio_entries.pop()  # Remove the last divider
+
+        self.municipio_controls = municipio_entries
+
         return ft.Column(
-            [ft.Text(f"📌 EJE {self.eje_nombre}", style=TextStyles.subtitle(self.app_state.is_dark_theme)), ft.Divider()] + municipio_cols,
+            [ft.Text(f"📌 EJE {self.eje_nombre}", style=TextStyles.subtitle(self.app_state.is_dark_theme)), ft.Divider()] + self.municipio_controls,
             expand=True,
             scroll=ft.ScrollMode.HIDDEN
         )
 
-    def _create_municipio_view(self, municipio: str) -> ft.Column:
-        entries_container = ft.Column()
-        self.entry_controls[municipio] = entries_container
-        self._rebuild_entries(municipio)
-
-        def add_entry(e):
-            self.app_state.add_report_line(municipio)
-            self._rebuild_entries(municipio)
-            self.update()
-
-        return ft.Column([
-            ft.Row([
-                ft.Text(municipio, weight=ft.FontWeight.BOLD, expand=True),
-                ft.IconButton(icon=ft.Icons.ADD_CIRCLE_OUTLINE, on_click=add_entry, tooltip="Añadir línea")
-            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-            entries_container,
-            ft.Divider(height=5, thickness=0.5)
-        ], expand=True)
-
-    def _rebuild_entries(self, municipio: str):
-        container = self.entry_controls[municipio]
-        container.controls.clear()
-        for entry in self.app_state.estados_municipios.get(municipio, []):
-            row = ReportEntryRow(
-                self.app_state, municipio, entry,
-                on_delete=lambda entry_id: self._delete_entry(municipio, entry_id)
-            )
-            container.controls.append(row)
-
-    def _delete_entry(self, municipio: str, entry_id: str):
-        self.app_state.remove_report_line(municipio, entry_id)
-        self._rebuild_entries(municipio)
-        self.update()
-
     def validate(self) -> bool:
+        """Valida todas las entradas de los municipios en esta tarjeta."""
         is_valid = True
-        for municipio_container in self.entry_controls.values():
-            for row in municipio_container.controls:
-                if isinstance(row, ReportEntryRow) and not row.validate():
-                    is_valid = False
+        for control in self.municipio_controls:
+            if isinstance(control, MunicipalityEntry) and not control.validate():
+                is_valid = False
         return is_valid
 
 # --- Componentes restantes (CustomAppBar, OperatorSelector, etc.) ---
