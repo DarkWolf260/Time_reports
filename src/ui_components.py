@@ -82,7 +82,8 @@ class EjeCard(ft.Container):
         municipio_cols = [self._create_municipio_view(m) for m in self.municipios]
         return ft.Column(
             [ft.Text(f"📌 EJE {self.eje_nombre}", style=TextStyles.subtitle(self.app_state.is_dark_theme)), ft.Divider()] + municipio_cols,
-            scroll=ft.ScrollMode.HIDDEN
+            scroll=ft.ScrollMode.HIDDEN,
+            expand=True
         )
 
     def _create_municipio_view(self, municipio: str) -> ft.Column:
