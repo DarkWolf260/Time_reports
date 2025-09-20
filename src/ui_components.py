@@ -103,7 +103,7 @@ class EjeCard(ft.Container):
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             entries_container,
             ft.Divider(height=5, thickness=0.5)
-        ])
+        ], expand=True)
 
     def _rebuild_entries(self, municipio: str):
         container = self.entry_controls[municipio]
