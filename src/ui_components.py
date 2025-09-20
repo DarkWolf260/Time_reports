@@ -131,10 +131,25 @@ class EjeCard(ft.Container):
         self.content = self._build()
 
     def _build(self):
+        """Construye el contenido de la tarjeta del eje con un encabezado fijo."""
+        header = ft.Column(
+            controls=[
+                ft.Text(f"📌 EJE {self.eje_nombre}", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
+                ft.Divider(),
+            ],
+            spacing=5
+        )
+
         municipio_cols = [self._create_municipio_view(m) for m in self.municipios]
-        return ft.Column(
-            [ft.Text(f"📌 EJE {self.eje_nombre}", style=TextStyles.subtitle(self.app_state.is_dark_theme)), ft.Divider()] + municipio_cols,
+
+        scrollable_content = ft.Column(
+            controls=municipio_cols,
             scroll=ft.ScrollMode.HIDDEN,
+            expand=True
+        )
+
+        return ft.Column(
+            controls=[header, scrollable_content],
             expand=True
         )
 
