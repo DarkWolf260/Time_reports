@@ -34,7 +34,6 @@ class CustomAppBar:
                 style=TextStyles.subtitle(is_dark)
             ),
             bgcolor=ContainerStyles.card(is_dark)["bgcolor"],
-            shadow=Shadows.SMALL,
             actions=[
                 ft.PopupMenuButton(
                     items=[

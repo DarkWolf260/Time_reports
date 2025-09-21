@@ -10,7 +10,7 @@ from ui_components import (
     CustomAppBar, ReportDisplay, WeatherSelector, OperatorSelector,
     ActionButtons, SettingsDialog, OperatorManagementDialog
 )
-from styles import ThemeManager, TextStyles, ContainerStyles, Colors
+from styles import ButtonStyles, ThemeManager, TextStyles, ContainerStyles, Colors
 from config import WINDOW_CONFIG, get_cargos, MUNICIPIOS, DEFAULT_OPERATORS
 
 class WeatherReportApp:
@@ -168,14 +168,15 @@ class WeatherReportApp:
             title=ft.Text("Acerca de", style=TextStyles.subtitle(is_dark)),
             content=ft.Column(
                 [
-                    ft.Image(src="icon.png", width=60, height=60),
+                    ft.Image(src="icon.png", width=100, height=100),
                     ft.Text("Creado por:", style=TextStyles.body(is_dark)),
                     ft.Text("Rubén Rojas", weight=ft.FontWeight.BOLD, size=16),
                     ft.Text("Versión 1.0.0", style=TextStyles.caption(is_dark)),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 spacing=10,
-                width=250,
+                width=300,
+                height=200,
             ),
             actions=[
                 ft.ElevatedButton(
