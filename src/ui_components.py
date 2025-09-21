@@ -115,7 +115,7 @@ class ReportEntryRow(ft.Row):
         for key, value in weather_dropdown_style.items():
             setattr(self.weather_dropdown, key, value)
 
-        self.update()
+        # self.update() # Removido para la actualización por lotes
 
 class EjeCard(ft.Container):
     def __init__(self, app_state: AppState, eje_nombre: str, municipios: List[str]):
@@ -194,7 +194,7 @@ class EjeCard(ft.Container):
                 if isinstance(row, ReportEntryRow):
                     row.update_theme()
 
-        self.update()
+        # self.update() # Removido para la actualización por lotes
 
 class CustomAppBar:
     def __init__(self, app_state: AppState, on_theme_change: Callable, on_manage_operators: Callable, operator_selector: 'OperatorSelector', on_copy: Callable):
@@ -249,7 +249,7 @@ class CustomAppBar:
         # Actualizar el selector de operador
         self.operator_selector.update_theme()
 
-        self.app_bar.update()
+        # self.app_bar.update() # Removido para la actualización por lotes
 
 class OperatorSelector(ft.Dropdown):
     def __init__(self, app_state: AppState, on_change: Callable):
@@ -278,7 +278,7 @@ class OperatorSelector(ft.Dropdown):
         style = InputStyles.dropdown(self.app_state.is_dark_theme)
         for key, value in style.items():
             setattr(self, key, value)
-        self.update()
+        # self.update() # Removido para la actualización por lotes
 
 class OperatorManagementDialog:
     def __init__(self, app_state: AppState, operator_selector: OperatorSelector, page: ft.Page):
