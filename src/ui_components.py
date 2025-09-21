@@ -171,7 +171,7 @@ class CustomAppBar:
 
     def _create_app_bar(self) -> ft.AppBar:
         is_dark = self.app_state.is_dark_theme
-        copy_button = ft.FilledButton(text="Copiar", icon=ft.icons.CONTENT_COPY, on_click=lambda _: self.on_copy(), style=ButtonStyles.primary())
+        copy_button = ft.FilledButton(text="Copiar", icon=ft.Icons.CONTENT_COPY, on_click=lambda _: self.on_copy(), style=ButtonStyles.primary())
         self.operator_selector.width = 300
         self.operator_selector.label = ""
         self.operator_selector.hint_text = "Operador que reporta"
