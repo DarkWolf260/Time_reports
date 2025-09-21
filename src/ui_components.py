@@ -6,7 +6,7 @@ import flet as ft
 import re
 from typing import Callable, List
 from models import AppState, Operador, ReportEntry
-from styles import TextStyles, ButtonStyles, ContainerStyles, InputStyles, Colors, ThemeManager
+from styles import TextStyles, ButtonStyles, ContainerStyles, InputStyles, Colors, ThemeManager, Shadows
 from config import NOMBRES_TIEMPO, TIEMPO, EMOJI_TIEMPO, JERARQUIAS, WINDOW_CONFIG, get_cargos
 
 class ReportEntryRow(ft.Row):
@@ -126,9 +126,13 @@ class EjeCard(ft.Container):
         self.eje_nombre = eje_nombre
         self.municipios = municipios
         self.entry_controls = {}
-        self.padding = ContainerStyles.card(self.app_state.is_dark_theme).get("padding")
-        self.bgcolor = ContainerStyles.card(self.app_state.is_dark_theme).get("bgcolor")
-        self.border_radius = ContainerStyles.card(self.app_state.is_dark_theme).get("border_radius")
+
+        card_style = ContainerStyles.card(self.app_state.is_dark_theme)
+        self.padding = card_style.get("padding")
+        self.bgcolor = card_style.get("bgcolor")
+        self.border_radius = card_style.get("border_radius")
+        self.shadow = card_style.get("shadow")
+
         self.content = self._build()
 
     def _build(self):
@@ -199,6 +203,7 @@ class EjeCard(ft.Container):
         # Actualizar estilos del contenedor principal
         card_style = ContainerStyles.card(is_dark)
         self.bgcolor = card_style.get("bgcolor")
+        self.shadow = card_style.get("shadow")
 
         # Actualizar estilo del título
         self.title.style = TextStyles.subtitle(is_dark)
@@ -237,14 +242,40 @@ class CustomAppBar:
         )
         return ft.AppBar(
             leading_width=0, title=title_row, bgcolor=ContainerStyles.card(is_dark)["bgcolor"],
+            shadow=Shadows.MEDIUM,
             actions=[
                 copy_button,
                 ft.PopupMenuButton(items=[
                     ft.PopupMenuItem(text="Cambiar Tema", icon=ThemeManager.get_theme_icon(is_dark), on_click=lambda _: self.on_theme_change()),
                     ft.PopupMenuItem(text="Gestionar Operadores", icon=ft.Icons.MANAGE_ACCOUNTS, on_click=lambda _: self.on_manage_operators()),
+                    ft.PopupMenuItem(text="Acerca de", icon=ft.Icons.INFO_OUTLINE, on_click=self._show_about_dialog),
                 ]),
             ],
         )
+
+    def _show_about_dialog(self, e):
+        """Muestra el diálogo 'Acerca de'."""
+        is_dark = self.app_state.is_dark_theme
+        dialog_style = ContainerStyles.dialog(is_dark)
+
+        about_dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Acerca de SiGeR", style=TextStyles.subtitle(is_dark)),
+            content=ft.Text(
+                "SiGeR - Sistema de Gestión de Reportes\n"
+                "Versión 1.0.0\n\n"
+                "Desarrollado para facilitar la creación de reportes meteorológicos.",
+                style=TextStyles.body(is_dark)
+            ),
+            actions=[
+                ft.ElevatedButton("Cerrar", on_click=lambda _: self.app_state.page.close(about_dialog), style=ButtonStyles.secondary(is_dark))
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+            bgcolor=dialog_style.get("bgcolor"),
+            shape=ft.RoundedRectangleBorder(radius=dialog_style.get("border_radius", 0))
+        )
+
+        self.app_state.page.open(about_dialog)
 
     def update_theme(self):
         is_dark = self.app_state.is_dark_theme

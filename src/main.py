@@ -60,9 +60,9 @@ class WeatherReportApp:
             expand=True,
             vertical_alignment=ft.CrossAxisAlignment.STRETCH
         )
-        self.credits = ft.Text("Creado por: Rubén Rojas", style=TextStyles.caption(self.app_state.is_dark_theme))
+        # El texto de créditos ha sido eliminado.
         main_column = ft.Column(
-            [ejes_row, ft.Row([self.credits], alignment=ft.MainAxisAlignment.CENTER)],
+            [ejes_row], # Se elimina la fila de créditos.
             expand=True, spacing=10, alignment=ft.MainAxisAlignment.START,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER
         )
@@ -73,7 +73,7 @@ class WeatherReportApp:
         self.app_bar.update_theme()
         for card_container in self.eje_cards:
             card_container.content.update_theme()
-        self.credits.style = TextStyles.caption(self.app_state.is_dark_theme)
+        # La actualización de créditos ha sido eliminada.
         self.page.update()
 
     def _handle_copy_report(self):
@@ -107,12 +107,9 @@ class WeatherReportApp:
         self.page.theme_mode = ft.ThemeMode.DARK if is_dark else ft.ThemeMode.LIGHT
         self.page.bgcolor = ThemeManager.get_page_bgcolor(is_dark)
 
-        # Actualizar el tema de los componentes existentes en lugar de reconstruir
-        if hasattr(self, 'app_bar'):
-            self.update_theme()
-        else:
-            # Si los componentes no se han creado aún (inicio inicial), solo actualiza la página
-            self.page.update()
+        # Llama incondicionalmente a update_theme.
+        # Es seguro porque _apply_theme siempre se llama después de que los componentes han sido creados.
+        self.update_theme()
 
     def _on_data_change(self, e=None):
         """Callback vacío, la lógica de actualización está en los componentes."""
