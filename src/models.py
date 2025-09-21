@@ -33,7 +33,7 @@ class Operador:
     cedula: str
 
     def __str__(self) -> str:
-        return f"{self.jerarquia} {self.nombre} {self.cedula}"
+        return f"{self.jerarquia} {self.nombre} ({self.cargo})"
 
     def to_dict(self) -> Dict[str, str]:
         return {"nombre": self.nombre, "cargo": self.cargo, "jerarquia": self.jerarquia, "cedula": self.cedula}
@@ -85,6 +85,10 @@ class OperadorManager:
 
     def buscar_por_cedula(self, cedula: str) -> Optional[Operador]:
         return next((op for op in self._operadores if op.cedula == cedula), None)
+
+    def obtener_operadores(self) -> List[Operador]:
+        """Devuelve la lista completa de objetos Operador."""
+        return self._operadores
 
     def obtener_nombres(self) -> List[str]:
         return [op.nombre for op in self._operadores]
