@@ -48,9 +48,9 @@ class Shadows:
     )
     
     MEDIUM = ft.BoxShadow(
-        blur_radius=16,
-        color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK),
-        offset=ft.Offset(0, 4)
+        blur_radius=20,
+        color=ft.Colors.with_opacity(0.15, ft.Colors.BLACK),
+        offset=ft.Offset(0, 5)
     )
     
     LARGE = ft.BoxShadow(
