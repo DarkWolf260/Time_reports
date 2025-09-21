@@ -23,8 +23,7 @@ class ReportEntryRow(ft.Row):
 
         self.time_field = ft.TextField(
             label="Hora", width=80, value=self.entry.hora,
-            on_blur=self._on_data_change,
-            on_change=self._on_time_change,
+            on_blur=self._on_data_change, # on_change eliminado para mejorar rendimiento
             **InputStyles.textfield(self.app_state.is_dark_theme)
         )
 
@@ -48,24 +47,27 @@ class ReportEntryRow(ft.Row):
         self.controls = [self.time_field, self.weather_dropdown, self.delete_button]
         self._update_time_field_visibility()
 
-    def _on_time_change(self, e):
-        tf = e.control
-        digits = "".join(filter(str.isdigit, tf.value))[:4]
-        if len(digits) > 2:
-            formatted_time = f"{digits[:2]}:{digits[2:]}"
-        else:
-            formatted_time = digits
-        if tf.value != formatted_time:
-            tf.value = formatted_time
-            tf.update()
-
     def _on_data_change(self, e=None):
+        # Formatear el valor del campo de hora cuando pierde el foco
+        if e and e.control == self.time_field:
+            tf = self.time_field
+            digits = "".join(filter(str.isdigit, tf.value))[:4]
+            if len(digits) > 2:
+                formatted_time = f"{digits[:2]}:{digits[2:]}"
+            else:
+                formatted_time = digits
+            tf.value = formatted_time
+
         dropdown_val = self.weather_dropdown.value
         new_indice = int(dropdown_val) if dropdown_val and dropdown_val != "-1" else None
+
         self.app_state.update_report_line(
             self.municipio, self.entry.id, new_indice, self.time_field.value
         )
+
         self._update_time_field_visibility()
+
+        # Actualización única al final
         if self.page: self.page.update()
 
     def _update_time_field_visibility(self):
@@ -145,29 +147,42 @@ class EjeCard(ft.Container):
     def _create_municipio_view(self, municipio: str) -> ft.Column:
         entries_container = ft.Column()
         self.entry_controls[municipio] = entries_container
-        self._rebuild_entries(municipio)
-        def add_entry(e):
-            self.app_state.add_report_line(municipio)
-            self._rebuild_entries(municipio)
+
+        # Llenar el contenedor con las entradas existentes al inicio
+        for entry in self.app_state.estados_municipios.get(municipio, []):
+            entries_container.controls.append(
+                ReportEntryRow(self.app_state, municipio, entry, on_delete=lambda e_id: self._delete_entry_row(municipio, e_id))
+            )
+
         return ft.Column([
             ft.Row([
                 ft.Text(municipio, weight=ft.FontWeight.BOLD, expand=True),
-                ft.IconButton(icon=ft.Icons.ADD_CIRCLE_OUTLINE, on_click=add_entry, tooltip="Añadir línea")
+                ft.IconButton(icon=ft.Icons.ADD_CIRCLE_OUTLINE, on_click=lambda e, m=municipio: self._add_entry_row(m), tooltip="Añadir línea")
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             entries_container,
             ft.Divider(height=5, thickness=0.5)
         ], expand=True)
 
-    def _rebuild_entries(self, municipio: str):
-        container = self.entry_controls[municipio]
-        container.controls.clear()
-        for entry in self.app_state.estados_municipios.get(municipio, []):
-            container.controls.append(ReportEntryRow(self.app_state, municipio, entry, lambda entry_id: self._delete_entry(municipio, entry_id)))
-        if self.app_state.page: self.app_state.page.update()
+    def _add_entry_row(self, municipio: str):
+        """Añade una nueva fila de entrada de forma eficiente."""
+        new_entry = self.app_state.add_report_line(municipio)
+        if new_entry:
+            new_row = ReportEntryRow(self.app_state, municipio, new_entry, on_delete=lambda e_id: self._delete_entry_row(municipio, e_id))
+            # Aplicar tema actual a la nueva fila
+            new_row.update_theme()
+            self.entry_controls[municipio].controls.append(new_row)
+            if self.page: self.page.update()
 
-    def _delete_entry(self, municipio: str, entry_id: str):
+    def _delete_entry_row(self, municipio: str, entry_id: str):
+        """Elimina una fila de entrada de forma eficiente."""
         self.app_state.remove_report_line(municipio, entry_id)
-        self._rebuild_entries(municipio)
+
+        container = self.entry_controls[municipio]
+        row_to_remove = next((row for row in container.controls if isinstance(row, ReportEntryRow) and row.entry.id == entry_id), None)
+
+        if row_to_remove:
+            container.controls.remove(row_to_remove)
+            if self.page: self.page.update()
 
     def validate(self) -> bool:
         is_valid = True

@@ -173,9 +173,12 @@ class AppState:
             for municipio in municipios:
                 self.estados_municipios[municipio] = [ReportEntry()]
 
-    def add_report_line(self, municipio: str):
+    def add_report_line(self, municipio: str) -> Optional[ReportEntry]:
         if municipio in self.estados_municipios:
-            self.estados_municipios[municipio].append(ReportEntry())
+            new_entry = ReportEntry()
+            self.estados_municipios[municipio].append(new_entry)
+            return new_entry
+        return None
 
     def update_report_line(self, municipio: str, line_id: str, new_indice: Optional[int], new_hora: str):
         if municipio in self.estados_municipios:
