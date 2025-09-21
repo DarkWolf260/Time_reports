@@ -121,22 +121,32 @@ class ReportGenerator:
 
         for eje, municipios in EJES.items():
             reporte_partes.append(f"📌 *EJE {eje}*")
-            for municipio in municipios:
+            for i, municipio in enumerate(municipios):
                 entries = estados_municipios.get(municipio, [])
                 if not entries:
                     reporte_partes.append(f"- *{municipio.upper()}:* No se obtuvo información")
-                    continue
+                else:
+                    # Primera línea
+                    first_entry = entries[0]
+                    estado_texto = TIEMPO[first_entry.indice_tiempo] if first_entry.indice_tiempo is not None else "Sin información"
 
-                # Primera línea
-                first_entry = entries[0]
-                estado_texto = TIEMPO[first_entry.indice_tiempo] if first_entry.indice_tiempo is not None else "Sin información"
-                reporte_partes.append(f"- *{municipio.upper()}:* {estado_texto}")
+                    # Lógica para la primera línea con o sin hora
+                    if first_entry.hora and len(entries) == 1:
+                         # Caso especial: una sola entrada con hora, sin formato markdown para la hora
+                        reporte_partes.append(f"- *{municipio.upper()}:* {estado_texto} {first_entry.hora} HLV")
+                    else:
+                        reporte_partes.append(f"- *{municipio.upper()}:* {estado_texto}")
 
-                # Líneas subsecuentes
-                for entry in entries[1:]:
-                    estado_texto = TIEMPO[entry.indice_tiempo] if entry.indice_tiempo is not None else "Sin información"
-                    hora_str = f"{entry.hora} HLV" if entry.hora else ""
-                    reporte_partes.append(f"- *{hora_str}:* {estado_texto}")
+                    # Líneas subsecuentes
+                    for entry in entries[1:]:
+                        estado_texto_sec = TIEMPO[entry.indice_tiempo] if entry.indice_tiempo is not None else "Sin información"
+                        hora_str = f"{entry.hora} HLV" if entry.hora else ""
+                        reporte_partes.append(f"- *{hora_str}:* {estado_texto_sec}")
+
+                # Añadir separador entre municipios, excepto para el último
+                if i < len(municipios) - 1:
+                    reporte_partes.append("") # Separador cambiado a línea en blanco
+
             reporte_partes.append("")
 
         reporte_partes.extend([f"- *REPORTA:* {operador_str}", "", "*SOLO QUEREMOS SALVAR VIDAS* 🚑"])

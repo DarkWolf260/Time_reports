@@ -29,7 +29,6 @@ WINDOW_CONFIG = {
 
 # Estados del tiempo
 TIEMPO = [
-    "- Selecciona una opción -",
     "Cielo despejado",
     "Cielo parcialmente nublado",
     "Cielo con nubosidad fragmentada",
@@ -47,14 +46,12 @@ TIEMPO = [
 ]
 
 EMOJI_TIEMPO = [
-    "⚪",
     "☀", "⛅", "🌤", "🌤", "☁", "🌧", "🌧", "🌧",
     "🌧", "🌧", "🌧", "🌧", "☁",
     "🤷"
 ]
 
 NOMBRES_TIEMPO = [
-    "- Selecciona una opción -",
     "Despejado", "Parcialmente nublado", "Nubosidad fragmentada",
     "Nubosidad dispersa", "Nublado", "Precipitaciones leves",
     "Precipitaciones moderadas", "Precipitaciones fuertes",

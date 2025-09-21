@@ -27,14 +27,15 @@ class ReportEntryRow(ft.Row):
             **InputStyles.textfield(self.app_state.is_dark_theme)
         )
 
-        weather_options = [ft.dropdown.Option(key="-1", text="-- Seleccione Clima --")] + [
+        weather_options = [ft.dropdown.Option(key="-1", text="Selecciona una opción")] + [
             ft.dropdown.Option(key=str(i), text=f"{EMOJI_TIEMPO[i]} {nombre}") for i, nombre in enumerate(NOMBRES_TIEMPO)
         ]
 
         self.weather_dropdown = ft.Dropdown(
             options=weather_options,
             value=str(self.entry.indice_tiempo) if self.entry.indice_tiempo is not None else "-1",
-            width=240,
+            width=260,
+            content_padding=ft.padding.symmetric(vertical=12, horizontal=10),
             on_change=self._on_data_change,
             **InputStyles.dropdown(self.app_state.is_dark_theme)
         )
@@ -233,7 +234,7 @@ class CustomAppBar:
         self.operator_selector.hint_text = "Operador que reporta"
         title_row = ft.Row(
             [
-                ft.Image(src="icon.png", width=30, height=30),
+                ft.Image(src="icon.png", width=40, height=40),
                 ft.Text(WINDOW_CONFIG["title"], style=TextStyles.subtitle(is_dark)),
                 ft.Container(expand=True),
                 self.operator_selector
@@ -259,7 +260,10 @@ class CustomAppBar:
 
         about_dialog = ft.AlertDialog(
             modal=True,
-            title=ft.Text("Acerca de SiGeR", style=TextStyles.subtitle(is_dark)),
+            title=ft.Row([
+                ft.Image(src="icon.png", width=30, height=30),
+                ft.Text("Acerca de SiGeR", style=TextStyles.subtitle(is_dark))
+            ]),
             content=ft.Text(
                 "SiGeR - Sistema de Gestión de Reportes\n"
                 "Versión 1.0.0\n\n"
