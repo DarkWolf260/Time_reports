@@ -34,8 +34,8 @@ class ReportEntryRow(ft.Row):
         self.weather_dropdown = ft.Dropdown(
             options=weather_options,
             value=str(self.entry.indice_tiempo) if self.entry.indice_tiempo is not None else "-1",
-            width=260,
-            content_padding=ft.padding.symmetric(vertical=12, horizontal=10),
+            width=300,
+            padding=ft.padding.symmetric(vertical=12, horizontal=10),
             on_change=self._on_data_change,
             **InputStyles.dropdown(self.app_state.is_dark_theme)
         )
@@ -234,7 +234,7 @@ class CustomAppBar:
         self.operator_selector.hint_text = "Operador que reporta"
         title_row = ft.Row(
             [
-                ft.Image(src="icon.png", width=40, height=40),
+                ft.Image(src="icon.png", width=50, height=50),
                 ft.Text(WINDOW_CONFIG["title"], style=TextStyles.subtitle(is_dark)),
                 ft.Container(expand=True),
                 self.operator_selector
@@ -260,24 +260,30 @@ class CustomAppBar:
 
         about_dialog = ft.AlertDialog(
             modal=True,
-            title=ft.Row([
-                ft.Image(src="icon.png", width=30, height=30),
-                ft.Text("Acerca de SiGeR", style=TextStyles.subtitle(is_dark))
-            ]),
-            content=ft.Text(
-                "SiGeR - Sistema de Gestión de Reportes\n"
-                "Versión 1.0.0\n\n"
-                "Desarrollado para facilitar la creación de reportes meteorológicos.",
-                style=TextStyles.body(is_dark)
+            title=ft.Text("Acerca de", style=TextStyles.subtitle(is_dark)),
+            content=ft.Column(
+                [
+                    ft.Image(src="icon.png", width=150, height=150),
+                    ft.Text("Creado por:", style=TextStyles.body(is_dark)),
+                    ft.Text("Rubén Rojas", weight=ft.FontWeight.BOLD, size=16),
+                    ft.Text("Versión 1.0.0", style=TextStyles.caption(is_dark)),
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                spacing=10,
+                width=300,
+                height=300,
             ),
             actions=[
-                ft.ElevatedButton("Cerrar", on_click=lambda _: self.app_state.page.close(about_dialog), style=ButtonStyles.secondary(is_dark))
+                ft.ElevatedButton(
+                    "Cerrar",
+                    on_click=lambda e: self.app_state.page.close(about_dialog),
+                    style=ButtonStyles.secondary(is_dark)
+                )
             ],
-            actions_alignment=ft.MainAxisAlignment.END,
+            actions_alignment=ft.MainAxisAlignment.CENTER,
             bgcolor=dialog_style.get("bgcolor"),
             shape=ft.RoundedRectangleBorder(radius=dialog_style.get("border_radius", 0))
         )
-
         self.app_state.page.open(about_dialog)
 
     def update_theme(self):
@@ -336,10 +342,38 @@ class OperatorManagementDialog:
         self.page = page
         self.dialog = None
 
+    def _format_cedula(self, e):
+        """Formatea la cédula mientras el usuario escribe."""
+        control = e.control
+
+        # Limpiar el valor para obtener solo los dígitos
+        digits = "".join(filter(str.isdigit, control.value))
+
+        # Limitar a 8 dígitos (máximo para cédulas en Venezuela)
+        if len(digits) > 8:
+            digits = digits[:8]
+
+        # Formatear los dígitos con puntos
+        if len(digits) > 5:
+            formatted_digits = f"{digits[:-6]}.{digits[-6:-3]}.{digits[-3:]}"
+        elif len(digits) > 2:
+            formatted_digits = f"{digits[:-3]}.{digits[-3:]}"
+        else:
+            formatted_digits = digits
+
+        # Construir el valor final con el prefijo "V-"
+        new_value = f"V-{formatted_digits}" if digits else "V-"
+
+        # Actualizar el control solo si el valor ha cambiado para evitar bucles
+        if control.value != new_value:
+            control.value = new_value
+            control.update()
+
+
     def _create_form_fields(self):
         style = InputStyles.textfield(self.app_state.is_dark_theme)
-        self.nombre_field = ft.TextField(label="Nombre", width=300, hint_text="Nombre del operador", **style)
-        self.cedula_field = ft.TextField(label="Cédula", width=300, hint_text="V-XX.XXX.XXX", **style)
+        self.nombre_field = ft.TextField(label="Nombre", width=300, hint_text="Nombre del operador",  **style)
+        self.cedula_field = ft.TextField(label="Cédula", width=300, hint_text="V-XX.XXX.XXX", on_change=self._format_cedula, **style)
         cargos = get_cargos(self.app_state.departamento)
         self.cargo_dropdown = ft.Dropdown(label="Cargo", width=300, options=[ft.dropdown.Option(c) for c in cargos], value=cargos[0] if cargos else None, **InputStyles.dropdown(self.app_state.is_dark_theme))
         self.jerarquia_dropdown = ft.Dropdown(label="Jerarquía", width=300, options=[ft.dropdown.Option(j) for j in JERARQUIAS], value=JERARQUIAS[0], **InputStyles.dropdown(self.app_state.is_dark_theme))

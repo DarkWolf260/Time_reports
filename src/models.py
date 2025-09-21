@@ -133,7 +133,7 @@ class ReportGenerator:
                     # Lógica para la primera línea con o sin hora
                     if first_entry.hora and len(entries) == 1:
                          # Caso especial: una sola entrada con hora, sin formato markdown para la hora
-                        reporte_partes.append(f"- *{municipio.upper()}:* {estado_texto} {first_entry.hora} HLV")
+                        reporte_partes.append(f"- *{municipio.upper()}:* {first_entry.hora} HLV - {estado_texto}")
                     else:
                         reporte_partes.append(f"- *{municipio.upper()}:* {estado_texto}")
 
