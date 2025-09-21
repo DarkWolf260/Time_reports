@@ -1,6 +1,6 @@
 # Time Reports - Aplicación de Reportes Meteorológicos
 
-![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg) ![Flet](https://img.shields.io/badge/Flet-0.28.3-green.svg) ![License](https://img.shields.io/badge/License-Uso%20Interno-red.svg) ![Maintained](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg) ![Flet](https://img.shields.io/badge/Flet-0.28.3-green.svg) ![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg) ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg) ![Maintained](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
 
 Una aplicación moderna y elegante creada con Flet para generar reportes del estado del tiempo de Protección Civil Municipales.
 
@@ -12,6 +12,8 @@ Una aplicación moderna y elegante creada con Flet para generar reportes del est
 - **Generación automática**: Reportes con formato profesional y fecha/hora actual.
 - **Copia rápida**: Un clic para copiar el reporte al portapapeles.
 - **Arquitectura limpia**: Código bien estructurado y mantenible.
+- **Ajustes de configuración**: Guarda el municipio y departamento de forma persistente.
+- **Diálogo 'Acerca de'**: Información de la versión y créditos.
 
 ## 🌟 Futuras Mejoras
 
@@ -54,12 +56,21 @@ Una aplicación moderna y elegante creada con Flet para generar reportes del est
 
 ## 📱 Uso de la Aplicación
 
+### Configuración Inicial
+
+Antes de generar un reporte, puedes configurar tu municipio y departamento por defecto:
+
+1.  **Abrir Configuración**: Haz clic en el icono de engranaje (⚙️) en la barra superior.
+2.  **Establecer valores**: Selecciona tu municipio y departamento en los menús desplegables.
+3.  **Guardar**: Haz clic en "Guardar" para aplicar los cambios.
+
+Estos valores se guardarán para futuras sesiones.
+
 ### Generar un Reporte
 
-1.  **Seleccionar Municipio y Departamento**: Configura tu municipio y departamento en los campos correspondientes.
-2.  **Seleccionar estado del tiempo**: Usa el dropdown superior para elegir las condiciones meteorológicas actuales.
-3.  **Seleccionar operador**: Escoge quién realiza el reporte.
-4.  **Copiar reporte**: Haz clic en "Copiar al Portapapeles" para obtener el reporte formateado.
+1.  **Seleccionar estado del tiempo**: Usa el dropdown superior para elegir las condiciones meteorológicas actuales.
+2.  **Seleccionar operador**: Escoge quién realiza el reporte.
+3.  **Copiar reporte**: Haz clic en "Copiar al Portapapeles" para obtener el reporte formateado.
 
 ### Gestionar Operadores
 
@@ -75,6 +86,11 @@ Una aplicación moderna y elegante creada con Flet para generar reportes del est
 
 -   Haz clic en el botón de sol/luna en la esquina superior derecha.
 -   El tema se guarda automáticamente para futuras sesiones.
+
+### Acerca de
+
+-   Para ver la información de la aplicación, haz clic en el icono de información (ℹ️) en la barra superior.
+-   Se mostrará una ventana con los créditos y la versión de la aplicación.
 
 ## 🏗️ Arquitectura
 
@@ -120,4 +136,4 @@ Todas las configuraciones principales y listas de datos (estados del tiempo, car
 
 ## 📄 Licencia
 
-Este proyecto está bajo una licencia de uso interno.
+Este proyecto está bajo la Licencia MIT. Consulta el archivo `LICENSE` para más detalles.
