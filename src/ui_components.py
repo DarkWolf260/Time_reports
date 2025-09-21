@@ -8,18 +8,19 @@ from typing import Callable, Optional, List
 from models import AppState, Operador, ReportGenerator
 from styles import (
     TextStyles, ButtonStyles, ContainerStyles, InputStyles, 
-    Colors, ThemeManager
+    Colors, ThemeManager, Shadows
 )
 from config import EMOJI_TIEMPO, NOMBRES_TIEMPO, get_cargos, JERARQUIAS, WINDOW_CONFIG
 
 class CustomAppBar:
     """AppBar personalizada con título y menú de opciones."""
 
-    def __init__(self, app_state: AppState, on_theme_change: Callable, on_manage_operators: Callable, on_show_settings: Callable):
+    def __init__(self, app_state: AppState, on_theme_change: Callable, on_manage_operators: Callable, on_show_settings: Callable, on_show_about: Callable):
         self.app_state = app_state
         self.on_theme_change = on_theme_change
         self.on_manage_operators = on_manage_operators
         self.on_show_settings = on_show_settings
+        self.on_show_about = on_show_about
         self.app_bar = self._create_app_bar()
 
     def _create_app_bar(self) -> ft.AppBar:
@@ -27,12 +28,13 @@ class CustomAppBar:
         is_dark = self.app_state.is_dark_theme
 
         return ft.AppBar(
-            leading=ft.Image(src="icon.png", width=30, height=30),
+            leading=ft.Image(src="icon.png", width=40, height=40),
             title=ft.Text(
                 WINDOW_CONFIG["title"],
                 style=TextStyles.subtitle(is_dark)
             ),
             bgcolor=ContainerStyles.card(is_dark)["bgcolor"],
+            shadow=Shadows.SMALL,
             actions=[
                 ft.PopupMenuButton(
                     items=[
@@ -50,6 +52,11 @@ class CustomAppBar:
                             text="Ajustes Generales",
                             icon=ft.Icons.SETTINGS,
                             on_click=lambda _: self.on_show_settings()
+                        ),
+                        ft.PopupMenuItem(
+                            text="Acerca de",
+                            icon=ft.Icons.INFO_OUTLINE,
+                            on_click=lambda _: self.on_show_about()
                         )
                     ]
                 )

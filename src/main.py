@@ -45,7 +45,8 @@ class WeatherReportApp:
             self.app_state,
             self._on_theme_toggle,
             self._show_operator_management_dialog,
-            self.settings_dialog.show
+            self.settings_dialog.show,
+            self._show_about_dialog
         )
         self.page.appbar = self.app_bar.app_bar
 
@@ -79,7 +80,15 @@ class WeatherReportApp:
         spacing=18,
         scroll=ft.ScrollMode.ADAPTIVE)
 
-        self.page.add(main_column)
+        # Se envuelve la columna principal en un contenedor con el color de fondo
+        # para evitar un parpadeo gris (flickering) al cambiar de tema.
+        # Esta es una solución alternativa para un posible problema de renderizado.
+        self.main_container = ft.Container(
+            main_column,
+            expand=True,
+            bgcolor=ThemeManager.get_page_bgcolor(self.app_state.is_dark_theme)
+        )
+        self.page.add(self.main_container)
 
         self.data_container = data_container
         self.credits = credits
@@ -105,7 +114,11 @@ class WeatherReportApp:
     def _apply_theme(self):
         """Aplica el tema actual a todos los componentes."""
         self.page.theme_mode = ft.ThemeMode.DARK if self.app_state.is_dark_theme else ft.ThemeMode.LIGHT
-        self.page.bgcolor = ThemeManager.get_page_bgcolor(self.app_state.is_dark_theme)
+
+        new_bgcolor = ThemeManager.get_page_bgcolor(self.app_state.is_dark_theme)
+        self.page.bgcolor = new_bgcolor
+        if hasattr(self, 'main_container'):
+            self.main_container.bgcolor = new_bgcolor
 
         self._update_themed_components()
 
@@ -144,6 +157,38 @@ class WeatherReportApp:
             page=self.page
         )
         dialog.show()
+
+    def _show_about_dialog(self, e=None):
+        """Muestra el diálogo 'Acerca de'."""
+        is_dark = self.app_state.is_dark_theme
+        dialog_style = ContainerStyles.dialog(is_dark)
+
+        about_dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Acerca de", style=TextStyles.subtitle(is_dark)),
+            content=ft.Column(
+                [
+                    ft.Image(src="icon.png", width=60, height=60),
+                    ft.Text("Creado por:", style=TextStyles.body(is_dark)),
+                    ft.Text("Rubén Rojas", weight=ft.FontWeight.BOLD, size=16),
+                    ft.Text("Versión 1.0.0", style=TextStyles.caption(is_dark)),
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                spacing=10,
+                width=250,
+            ),
+            actions=[
+                ft.ElevatedButton(
+                    "Cerrar",
+                    on_click=lambda e: self.page.close(about_dialog),
+                    style=ButtonStyles.secondary(is_dark)
+                )
+            ],
+            actions_alignment=ft.MainAxisAlignment.CENTER,
+            bgcolor=dialog_style.get("bgcolor"),
+            shape=ft.RoundedRectangleBorder(radius=dialog_style.get("border_radius", 0))
+        )
+        self.page.open(about_dialog)
 
     def _initial_update(self):
         """Realiza la actualización inicial de la interfaz."""
