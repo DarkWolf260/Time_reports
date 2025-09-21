@@ -242,7 +242,6 @@ class CustomAppBar:
         )
         return ft.AppBar(
             leading_width=0, title=title_row, bgcolor=ContainerStyles.card(is_dark)["bgcolor"],
-            shadow=Shadows.MEDIUM,
             actions=[
                 copy_button,
                 ft.PopupMenuButton(items=[
