@@ -101,6 +101,22 @@ class ReportEntryRow(ft.Row):
         self.update()
         return is_valid
 
+    def update_theme(self):
+        """Actualiza el tema de la fila de entrada de reporte."""
+        is_dark = self.app_state.is_dark_theme
+
+        # Actualizar estilo del campo de hora
+        time_field_style = InputStyles.textfield(is_dark)
+        for key, value in time_field_style.items():
+            setattr(self.time_field, key, value)
+
+        # Actualizar estilo del dropdown de clima
+        weather_dropdown_style = InputStyles.dropdown(is_dark)
+        for key, value in weather_dropdown_style.items():
+            setattr(self.weather_dropdown, key, value)
+
+        self.update()
+
 class EjeCard(ft.Container):
     def __init__(self, app_state: AppState, eje_nombre: str, municipios: List[str]):
         super().__init__()
@@ -114,9 +130,10 @@ class EjeCard(ft.Container):
         self.content = self._build()
 
     def _build(self):
+        self.title = ft.Text(f"📌 EJE {self.eje_nombre}", style=TextStyles.subtitle(self.app_state.is_dark_theme))
         header = ft.Column(
             controls=[
-                ft.Text(f"📌 EJE {self.eje_nombre}", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
+                self.title,
                 ft.Divider(),
             ],
             spacing=5
@@ -160,6 +177,25 @@ class EjeCard(ft.Container):
                 is_valid = False
         return is_valid
 
+    def update_theme(self):
+        """Actualiza el tema de la tarjeta del eje y todos sus componentes hijos."""
+        is_dark = self.app_state.is_dark_theme
+
+        # Actualizar estilos del contenedor principal
+        card_style = ContainerStyles.card(is_dark)
+        self.bgcolor = card_style.get("bgcolor")
+
+        # Actualizar estilo del título
+        self.title.style = TextStyles.subtitle(is_dark)
+
+        # Actualizar el tema de cada fila de entrada de reporte
+        for municipio_container in self.entry_controls.values():
+            for row in municipio_container.controls:
+                if isinstance(row, ReportEntryRow):
+                    row.update_theme()
+
+        self.update()
+
 class CustomAppBar:
     def __init__(self, app_state: AppState, on_theme_change: Callable, on_manage_operators: Callable, operator_selector: 'OperatorSelector', on_copy: Callable):
         self.app_state = app_state
@@ -199,10 +235,21 @@ class CustomAppBar:
         is_dark = self.app_state.is_dark_theme
         title_text = self.app_bar.title.controls[1]
         title_text.style = TextStyles.subtitle(is_dark)
+
         self.app_bar.bgcolor = ContainerStyles.card(is_dark)["bgcolor"]
-        self.app_bar.actions[1].items[0].icon = ThemeManager.get_theme_icon(is_dark)
-        self.app_bar.actions[0].style = ButtonStyles.primary()
+
+        # Actualizar el menú emergente y el botón de copiar
+        popup_menu = self.app_bar.actions[1]
+        popup_menu.items[0].text = "Cambiar Tema"
+        popup_menu.items[0].icon = ThemeManager.get_theme_icon(is_dark)
+
+        copy_button = self.app_bar.actions[0]
+        copy_button.style = ButtonStyles.primary()
+
+        # Actualizar el selector de operador
         self.operator_selector.update_theme()
+
+        self.app_bar.update()
 
 class OperatorSelector(ft.Dropdown):
     def __init__(self, app_state: AppState, on_change: Callable):
@@ -251,17 +298,27 @@ class OperatorManagementDialog:
 
     def show(self, e=None):
         self._create_form_fields()
-        dialog_style = ContainerStyles.dialog(self.app_state.is_dark_theme)
+        is_dark = self.app_state.is_dark_theme
+        dialog_style = ContainerStyles.dialog(is_dark)
+
+        # Crear los botones con el estilo de tema correcto
+        add_button = ft.ElevatedButton("Añadir", on_click=self._agregar_operador, style=ButtonStyles.primary())
+        delete_button = ft.ElevatedButton("Eliminar", on_click=self._eliminar_operador, style=ButtonStyles.danger())
+        close_button = ft.ElevatedButton("Cerrar", on_click=self._cerrar_dialog, style=ButtonStyles.secondary(is_dark))
+
         self.dialog = ft.AlertDialog(
-            modal=True, title=ft.Text("Gestión de Operadores", style=TextStyles.subtitle(self.app_state.is_dark_theme)),
+            modal=True,
+            title=ft.Text("Gestión de Operadores", style=TextStyles.subtitle(is_dark)),
             content=ft.Column([
                 self.nombre_field, self.cedula_field, self.cargo_dropdown, self.jerarquia_dropdown,
-                ft.Row([ft.ElevatedButton("Añadir", on_click=self._agregar_operador, style=ButtonStyles.primary())], alignment="center"),
-                ft.Divider(), self.eliminar_dropdown,
-                ft.Row([ft.ElevatedButton("Eliminar", on_click=self._eliminar_operador, style=ButtonStyles.danger())], alignment="center")
+                ft.Row([add_button], alignment="center"),
+                ft.Divider(),
+                self.eliminar_dropdown,
+                ft.Row([delete_button], alignment="center")
             ], scroll=ft.ScrollMode.ADAPTIVE, spacing=10, width=300, height=400),
-            actions=[ft.ElevatedButton("Cerrar", on_click=self._cerrar_dialog, style=ButtonStyles.secondary(self.app_state.is_dark_theme))],
-            actions_alignment="center", bgcolor=dialog_style.get("bgcolor"),
+            actions=[close_button],
+            actions_alignment="center",
+            bgcolor=dialog_style.get("bgcolor"),
             shape=ft.RoundedRectangleBorder(radius=dialog_style.get("border_radius", 0))
         )
         self.page.open(self.dialog)

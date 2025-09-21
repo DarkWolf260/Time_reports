@@ -60,13 +60,21 @@ class WeatherReportApp:
             expand=True,
             vertical_alignment=ft.CrossAxisAlignment.STRETCH
         )
-        credits = ft.Text("Creado por: Rubén Rojas", style=TextStyles.caption(self.app_state.is_dark_theme))
+        self.credits = ft.Text("Creado por: Rubén Rojas", style=TextStyles.caption(self.app_state.is_dark_theme))
         main_column = ft.Column(
-            [ejes_row, ft.Row([credits], alignment=ft.MainAxisAlignment.CENTER)],
+            [ejes_row, ft.Row([self.credits], alignment=ft.MainAxisAlignment.CENTER)],
             expand=True, spacing=10, alignment=ft.MainAxisAlignment.START,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER
         )
         self.page.add(main_column)
+
+    def update_theme(self):
+        """Actualiza el tema de toda la aplicación."""
+        self.app_bar.update_theme()
+        for card_container in self.eje_cards:
+            card_container.content.update_theme()
+        self.credits.style = TextStyles.caption(self.app_state.is_dark_theme)
+        self.page.update()
 
     def _handle_copy_report(self):
         """Valida todas las entradas y copia el reporte si son válidas."""
@@ -94,13 +102,17 @@ class WeatherReportApp:
         self._apply_theme()
 
     def _apply_theme(self):
-        self.page.theme_mode = ft.ThemeMode.DARK if self.app_state.is_dark_theme else ft.ThemeMode.LIGHT
-        self.page.bgcolor = ThemeManager.get_page_bgcolor(self.app_state.is_dark_theme)
-        # Reconstruir la UI para aplicar temas a los componentes dinámicos
-        self.page.controls.clear()
-        self._create_components()
-        self._build_ui()
-        self.page.update()
+        """Aplica el tema actual a la página y a todos los componentes."""
+        is_dark = self.app_state.is_dark_theme
+        self.page.theme_mode = ft.ThemeMode.DARK if is_dark else ft.ThemeMode.LIGHT
+        self.page.bgcolor = ThemeManager.get_page_bgcolor(is_dark)
+
+        # Actualizar el tema de los componentes existentes en lugar de reconstruir
+        if hasattr(self, 'app_bar'):
+            self.update_theme()
+        else:
+            # Si los componentes no se han creado aún (inicio inicial), solo actualiza la página
+            self.page.update()
 
     def _on_data_change(self, e=None):
         """Callback vacío, la lógica de actualización está en los componentes."""
