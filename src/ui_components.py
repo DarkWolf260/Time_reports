@@ -310,23 +310,12 @@ class OperatorSelector(ft.Dropdown):
     def __init__(self, app_state: AppState, on_change: Callable):
         self.app_state = app_state
         self.on_change_callback = on_change
-
-        operadores = self.app_state.operador_manager.obtener_operadores()
-        operador_actual = self.app_state.obtener_operador_actual()
-        valor_inicial = operador_actual.nombre if operador_actual else None
-
-        options = [
-            ft.dropdown.Option(key=op.nombre, text=f"{op.jerarquia} {op.nombre} ({op.cargo})")
-            for op in operadores
-        ]
-
+        nombres = self.app_state.operador_manager.obtener_nombres()
+        valor_inicial = nombres[self.app_state.indice_operador] if nombres else None
         super().__init__(
-            label="Operador que reporta",
-            options=options,
-            value=valor_inicial,
-            on_change=self._on_dropdown_change,
-            **InputStyles.dropdown(self.app_state.is_dark_theme),
-            width=400
+            label="Operador que reporta", options=[ft.dropdown.Option(nombre) for nombre in nombres],
+            value=valor_inicial, on_change=self._on_dropdown_change,
+            **InputStyles.dropdown(self.app_state.is_dark_theme), width=400
         )
 
     def _on_dropdown_change(self, e):
@@ -335,14 +324,9 @@ class OperatorSelector(ft.Dropdown):
             self.on_change_callback()
 
     def refresh_options(self):
-        operadores = self.app_state.operador_manager.obtener_operadores()
-        operador_actual = self.app_state.obtener_operador_actual()
-
-        self.options = [
-            ft.dropdown.Option(key=op.nombre, text=f"{op.jerarquia} {op.nombre} ({op.cargo})")
-            for op in operadores
-        ]
-        self.value = operador_actual.nombre if operador_actual else None
+        nombres = self.app_state.operador_manager.obtener_nombres()
+        self.options = [ft.dropdown.Option(nombre) for nombre in nombres]
+        self.value = nombres[self.app_state.indice_operador] if nombres and 0 <= self.app_state.indice_operador < len(nombres) else None
         self.update()
 
     def update_theme(self):
@@ -393,17 +377,7 @@ class OperatorManagementDialog:
         cargos = get_cargos(self.app_state.departamento)
         self.cargo_dropdown = ft.Dropdown(label="Cargo", width=300, options=[ft.dropdown.Option(c) for c in cargos], value=cargos[0] if cargos else None, **InputStyles.dropdown(self.app_state.is_dark_theme))
         self.jerarquia_dropdown = ft.Dropdown(label="Jerarquía", width=300, options=[ft.dropdown.Option(j) for j in JERARQUIAS], value=JERARQUIAS[0], **InputStyles.dropdown(self.app_state.is_dark_theme))
-        operadores = self.app_state.operador_manager.obtener_operadores()
-        eliminar_options = [
-            ft.dropdown.Option(key=op.nombre, text=f"{op.jerarquia} {op.nombre} ({op.cargo})")
-            for op in operadores
-        ]
-        self.eliminar_dropdown = ft.Dropdown(
-            label="Eliminar operador",
-            width=300,
-            options=eliminar_options,
-            **InputStyles.dropdown(self.app_state.is_dark_theme)
-        )
+        self.eliminar_dropdown = ft.Dropdown(label="Eliminar operador", width=300, options=[ft.dropdown.Option(n) for n in self.app_state.operador_manager.obtener_nombres()], **InputStyles.dropdown(self.app_state.is_dark_theme))
 
     def show(self, e=None):
         self._create_form_fields()
@@ -450,11 +424,7 @@ class OperatorManagementDialog:
         self.page.update()
 
     def _refresh_delete_dropdown(self):
-        operadores = self.app_state.operador_manager.obtener_operadores()
-        self.eliminar_dropdown.options = [
-            ft.dropdown.Option(key=op.nombre, text=f"{op.jerarquia} {op.nombre} ({op.cargo})")
-            for op in operadores
-        ]
+        self.eliminar_dropdown.options = [ft.dropdown.Option(n) for n in self.app_state.operador_manager.obtener_nombres()]
         self.eliminar_dropdown.value = None
         self.dialog.content.update()
 

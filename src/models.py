@@ -86,10 +86,6 @@ class OperadorManager:
     def buscar_por_cedula(self, cedula: str) -> Optional[Operador]:
         return next((op for op in self._operadores if op.cedula == cedula), None)
 
-    def obtener_operadores(self) -> List[Operador]:
-        """Devuelve la lista completa de objetos Operador."""
-        return self._operadores
-
     def obtener_nombres(self) -> List[str]:
         return [op.nombre for op in self._operadores]
 
