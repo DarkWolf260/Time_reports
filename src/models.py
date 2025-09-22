@@ -6,6 +6,7 @@ import json
 import datetime
 import re
 import uuid
+import locale
 from typing import List, Dict, Optional, Any
 from dataclasses import dataclass, field
 from config import TIEMPO, DEPARTAMENTO, EJES
@@ -33,7 +34,7 @@ class Operador:
     cedula: str
 
     def __str__(self) -> str:
-        return f"{self.jerarquia} {self.nombre} ({self.cargo})"
+        return f"{self.cargo} {self.jerarquia} {self.nombre} {self.cedula}"
 
     def to_dict(self) -> Dict[str, str]:
         return {"nombre": self.nombre, "cargo": self.cargo, "jerarquia": self.jerarquia, "cedula": self.cedula}
@@ -108,7 +109,14 @@ class ReportGenerator:
     """Generador de reportes meteorológicos."""
     @staticmethod
     def generar_reporte_estadal(estados_municipios: Dict[str, List[ReportEntry]], operador: Optional[Operador]) -> str:
-        fecha_actual = datetime.date.today().strftime('%d/%B/%Y').capitalize()
+        try:
+            # Intenta establecer la configuración regional a español
+            locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+        except locale.Error:
+            # Si falla, usa la configuración regional por defecto del sistema
+            locale.setlocale(locale.LC_TIME, '')
+
+        fecha_actual = datetime.date.today().strftime('%d de %B de %Y')
         hora_actual = datetime.datetime.now().strftime('%H:%M')
         operador_str = str(operador) if operador else "(Sin operador)"
 
