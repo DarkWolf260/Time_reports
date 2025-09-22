@@ -116,7 +116,7 @@ class ReportGenerator:
             # Si falla, usa la configuración regional por defecto del sistema
             locale.setlocale(locale.LC_TIME, '')
 
-        fecha_actual = datetime.date.today().strftime('%d de %B de %Y')
+        fecha_actual = datetime.date.today().strftime('%d/%B/%Y')
         hora_actual = datetime.datetime.now().strftime('%H:%M')
         operador_str = str(operador) if operador else "(Sin operador)"
 
