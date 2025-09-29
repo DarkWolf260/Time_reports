@@ -34,6 +34,7 @@ class WeatherReportApp:
         self.page.window.maximizable = WINDOW_CONFIG["maximizable"]
         self.page.vertical_alignment = ft.MainAxisAlignment.START
         self.page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+        self.page.scroll = ft.ScrollMode.ADAPTIVE
 
     def _create_components(self):
         """Crea los componentes de la interfaz."""
@@ -48,25 +49,23 @@ class WeatherReportApp:
         )
         self.page.appbar = self.app_bar.app_bar
         self.eje_cards = [
-            ft.Container(content=EjeCard(self.app_state, nombre, municipios), expand=True)
+            ft.Container(
+                content=EjeCard(self.app_state, nombre, municipios),
+                col={"sm": 12, "md": 6, "xl": 3}
+            )
             for nombre, municipios in EJES.items()
         ]
 
     def _build_ui(self):
         """Construye la interfaz de usuario."""
-        ejes_row = ft.Row(
+        ejes_view = ft.ResponsiveRow(
             controls=self.eje_cards,
             spacing=10,
-            expand=True,
-            vertical_alignment=ft.CrossAxisAlignment.STRETCH
+            run_spacing=10,
+            vertical_alignment=ft.CrossAxisAlignment.START
         )
-        # El texto de créditos ha sido eliminado.
-        main_column = ft.Column(
-            [ejes_row], # Se elimina la fila de créditos.
-            expand=True, spacing=10, alignment=ft.MainAxisAlignment.START,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER
-        )
-        self.page.add(main_column)
+        # El contenedor principal ahora es scrollable a través de la página.
+        self.page.add(ejes_view)
 
     def update_theme(self):
         """Actualiza el tema de toda la aplicación."""

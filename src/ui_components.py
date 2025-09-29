@@ -12,7 +12,7 @@ from config import NOMBRES_TIEMPO, TIEMPO, EMOJI_TIEMPO, JERARQUIAS, WINDOW_CONF
 class ReportEntryRow(ft.Row):
     """Representa una única línea de entrada de reporte para un municipio."""
     def __init__(self, app_state: AppState, municipio: str, entry: ReportEntry, on_delete: Callable):
-        super().__init__(spacing=5, vertical_alignment=ft.CrossAxisAlignment.CENTER)
+        super().__init__(spacing=5, vertical_alignment=ft.CrossAxisAlignment.CENTER, wrap=True)
         self.app_state = app_state
         self.municipio = municipio
         self.entry = entry
@@ -22,9 +22,10 @@ class ReportEntryRow(ft.Row):
         self._is_first_entry = self.app_state.estados_municipios[self.municipio][0].id == self.entry.id
 
         self.time_field = ft.TextField(
-            label="Hora", width=80, value=self.entry.hora,
-            on_blur=self._on_data_change, # on_change eliminado para mejorar rendimiento
-            **InputStyles.textfield(self.app_state.is_dark_theme)
+            label="Hora", value=self.entry.hora,
+            on_blur=self._on_data_change,
+            **InputStyles.textfield(self.app_state.is_dark_theme),
+            expand=1
         )
 
         weather_options = [ft.dropdown.Option(key="-1", text="Selecciona una opción")] + [
@@ -34,10 +35,10 @@ class ReportEntryRow(ft.Row):
         self.weather_dropdown = ft.Dropdown(
             options=weather_options,
             value=str(self.entry.indice_tiempo) if self.entry.indice_tiempo is not None else "-1",
-            width=300,
             padding=ft.padding.symmetric(vertical=12, horizontal=10),
             on_change=self._on_data_change,
-            **InputStyles.dropdown(self.app_state.is_dark_theme)
+            **InputStyles.dropdown(self.app_state.is_dark_theme),
+            expand=4
         )
 
         self.delete_button = ft.IconButton(
@@ -146,7 +147,7 @@ class EjeCard(ft.Container):
             spacing=5
         )
         municipio_cols = [self._create_municipio_view(m) for m in self.municipios]
-        scrollable_content = ft.Column(controls=municipio_cols, scroll=ft.ScrollMode.HIDDEN, expand=True)
+        scrollable_content = ft.Column(controls=municipio_cols, scroll=ft.ScrollMode.ADAPTIVE, expand=True)
         return ft.Column(controls=[header, scrollable_content], expand=True)
 
     def _create_municipio_view(self, municipio: str) -> ft.Column:
@@ -229,17 +230,26 @@ class CustomAppBar:
     def _create_app_bar(self) -> ft.AppBar:
         is_dark = self.app_state.is_dark_theme
         copy_button = ft.FilledButton(text="Copiar", icon=ft.Icons.CONTENT_COPY, on_click=lambda _: self.on_copy(), style=ButtonStyles.primary())
-        self.operator_selector.width = 300
         self.operator_selector.label = ""
         self.operator_selector.hint_text = "Operador que reporta"
-        title_row = ft.Row(
+        self.operator_selector.expand = True
+        title_row = ft.ResponsiveRow(
             [
-                ft.Image(src="icon.png", width=50, height=50),
-                ft.Text(WINDOW_CONFIG["title"], style=TextStyles.subtitle(is_dark)),
-                ft.Container(expand=True),
-                self.operator_selector
+                ft.Container(
+                    ft.Image(src="icon.png", width=40, height=40),
+                    col={"xs": 2, "sm": 1},
+                ),
+                ft.Container(
+                    ft.Text(WINDOW_CONFIG["title"], style=TextStyles.subtitle(is_dark), no_wrap=True),
+                    col={"xs": 10, "sm": 5},
+                ),
+                ft.Container(
+                    self.operator_selector,
+                    col={"xs": 12, "sm": 6},
+                ),
             ],
-            spacing=20, vertical_alignment=ft.CrossAxisAlignment.CENTER
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
         )
         return ft.AppBar(
             leading_width=0, title=title_row, bgcolor=ContainerStyles.card(is_dark)["bgcolor"],
@@ -315,7 +325,7 @@ class OperatorSelector(ft.Dropdown):
         super().__init__(
             label="Operador que reporta", options=[ft.dropdown.Option(nombre) for nombre in nombres],
             value=valor_inicial, on_change=self._on_dropdown_change,
-            **InputStyles.dropdown(self.app_state.is_dark_theme), width=400
+            **InputStyles.dropdown(self.app_state.is_dark_theme)
         )
 
     def _on_dropdown_change(self, e):
@@ -372,12 +382,12 @@ class OperatorManagementDialog:
 
     def _create_form_fields(self):
         style = InputStyles.textfield(self.app_state.is_dark_theme)
-        self.nombre_field = ft.TextField(label="Nombre", width=300, hint_text="Nombre del operador",  **style)
-        self.cedula_field = ft.TextField(label="Cédula", width=300, hint_text="V-XX.XXX.XXX", on_change=self._format_cedula, **style)
+        self.nombre_field = ft.TextField(label="Nombre", hint_text="Nombre del operador",  **style)
+        self.cedula_field = ft.TextField(label="Cédula", hint_text="V-XX.XXX.XXX", on_change=self._format_cedula, **style)
         cargos = get_cargos(self.app_state.departamento)
-        self.cargo_dropdown = ft.Dropdown(label="Cargo", width=300, options=[ft.dropdown.Option(c) for c in cargos], value=cargos[0] if cargos else None, **InputStyles.dropdown(self.app_state.is_dark_theme))
-        self.jerarquia_dropdown = ft.Dropdown(label="Jerarquía", width=300, options=[ft.dropdown.Option(j) for j in JERARQUIAS], value=JERARQUIAS[0], **InputStyles.dropdown(self.app_state.is_dark_theme))
-        self.eliminar_dropdown = ft.Dropdown(label="Eliminar operador", width=300, options=[ft.dropdown.Option(n) for n in self.app_state.operador_manager.obtener_nombres()], **InputStyles.dropdown(self.app_state.is_dark_theme))
+        self.cargo_dropdown = ft.Dropdown(label="Cargo", options=[ft.dropdown.Option(c) for c in cargos], value=cargos[0] if cargos else None, **InputStyles.dropdown(self.app_state.is_dark_theme))
+        self.jerarquia_dropdown = ft.Dropdown(label="Jerarquía", options=[ft.dropdown.Option(j) for j in JERARQUIAS], value=JERARQUIAS[0], **InputStyles.dropdown(self.app_state.is_dark_theme))
+        self.eliminar_dropdown = ft.Dropdown(label="Eliminar operador", options=[ft.dropdown.Option(n) for n in self.app_state.operador_manager.obtener_nombres()], **InputStyles.dropdown(self.app_state.is_dark_theme))
 
     def show(self, e=None):
         self._create_form_fields()
@@ -398,7 +408,7 @@ class OperatorManagementDialog:
                 ft.Divider(),
                 self.eliminar_dropdown,
                 ft.Row([delete_button], alignment="center")
-            ], scroll=ft.ScrollMode.ADAPTIVE, spacing=10, width=300, height=400),
+            ], scroll=ft.ScrollMode.ADAPTIVE, spacing=10),
             actions=[close_button],
             actions_alignment="center",
             bgcolor=dialog_style.get("bgcolor"),
