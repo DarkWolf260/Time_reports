@@ -9,8 +9,44 @@ from ui_components import (
     CustomAppBar, OperatorSelector,
     OperatorManagementDialog, EjeCard
 )
-from styles import ThemeManager, TextStyles, ContainerStyles, Colors
+from styles import ThemeManager, TextStyles, ContainerStyles, Colors, ButtonStyles
 from config import WINDOW_CONFIG, DEFAULT_OPERATORS, EJES
+from typing import Callable
+
+class ActionsCard(ft.Container):
+    """Tarjeta de acciones con el selector de operador y el botón de copiar."""
+    def __init__(self, app_state: AppState, operator_selector: OperatorSelector, on_copy: Callable):
+        super().__init__()
+        self.app_state = app_state
+        self.operator_selector = operator_selector
+        self.on_copy = on_copy
+        self._build()
+        self.update_theme()
+
+    def _build(self):
+        """Construye el contenido de la tarjeta."""
+        self.copy_button = ft.FilledButton(
+            "Copiar Reporte", icon=ft.Icons.CONTENT_COPY, on_click=lambda _: self.on_copy(), expand=True
+        )
+        self.operator_selector.label = "Operador que reporta"
+        self.operator_selector.hint_text = ""
+        self.title = ft.Text("Acciones y Reporte")
+        self.content = ft.Column(
+            [self.title, ft.Divider(), self.operator_selector, self.copy_button], spacing=10
+        )
+
+    def update_theme(self):
+        """Actualiza el tema de la tarjeta."""
+        is_dark = self.app_state.is_dark_theme
+        card_style = ContainerStyles.card(is_dark)
+        self.padding = card_style.get("padding")
+        self.bgcolor = card_style.get("bgcolor")
+        self.border_radius = card_style.get("border_radius")
+        self.shadow = card_style.get("shadow")
+        self.title.style = TextStyles.subtitle(is_dark)
+        self.operator_selector.update_theme()
+        self.copy_button.style = ButtonStyles.primary()
+
 
 class WeatherReportApp:
     """Aplicación principal de reportes meteorológicos."""
@@ -43,11 +79,10 @@ class WeatherReportApp:
         self.app_bar = CustomAppBar(
             self.app_state,
             self._on_theme_toggle,
-            self.operator_management_dialog.show,
-            self.operator_selector,
-            self._handle_copy_report
+            self.operator_management_dialog.show
         )
         self.page.appbar = self.app_bar.app_bar
+
         self.eje_cards = [
             ft.Container(
                 content=EjeCard(self.app_state, nombre, municipios),
@@ -56,23 +91,30 @@ class WeatherReportApp:
             for nombre, municipios in EJES.items()
         ]
 
+        actions_card = ft.Container(
+            content=ActionsCard(self.app_state, self.operator_selector, self._handle_copy_report),
+            col={"sm": 12, "md": 6, "xl": 3}
+        )
+
+        self.all_cards = self.eje_cards + [actions_card]
+
     def _build_ui(self):
         """Construye la interfaz de usuario."""
-        ejes_view = ft.ResponsiveRow(
-            controls=self.eje_cards,
+        main_view = ft.ResponsiveRow(
+            controls=self.all_cards,
             spacing=10,
             run_spacing=10,
             vertical_alignment=ft.CrossAxisAlignment.START
         )
-        # El contenedor principal ahora es scrollable a través de la página.
-        self.page.add(ejes_view)
+        self.page.add(main_view)
 
     def update_theme(self):
         """Actualiza el tema de toda la aplicación."""
         self.app_bar.update_theme()
-        for card_container in self.eje_cards:
-            card_container.content.update_theme()
-        # La actualización de créditos ha sido eliminada.
+        for card_container in self.all_cards:
+            # Asumiendo que el contenido de cada contenedor (EjeCard, ActionsCard) tiene un método update_theme
+            if hasattr(card_container.content, 'update_theme'):
+                card_container.content.update_theme()
         self.page.update()
 
     def _handle_copy_report(self):

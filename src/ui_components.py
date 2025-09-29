@@ -221,44 +221,25 @@ class EjeCard(ft.Container):
         # self.update() # Removido para la actualización por lotes
 
 class CustomAppBar:
-    def __init__(self, app_state: AppState, on_theme_change: Callable, on_manage_operators: Callable, operator_selector: 'OperatorSelector', on_copy: Callable):
+    def __init__(self, app_state: AppState, on_theme_change: Callable, on_manage_operators: Callable):
         self.app_state = app_state
         self.on_theme_change = on_theme_change
         self.on_manage_operators = on_manage_operators
-        self.operator_selector = operator_selector
-        self.on_copy = on_copy
         self.app_bar = self._create_app_bar()
 
     def _create_app_bar(self) -> ft.AppBar:
         is_dark = self.app_state.is_dark_theme
-        copy_button = ft.FilledButton(text="Copiar", icon=ft.Icons.CONTENT_COPY, on_click=lambda _: self.on_copy(), style=ButtonStyles.primary())
-        self.operator_selector.label = ""
-        self.operator_selector.hint_text = "Operador que reporta"
-
-        title_row = ft.ResponsiveRow(
+        title_row = ft.Row(
             [
-                ft.Container(
-                    ft.Image(src="icon.png", width=40, height=40),
-                    col={"xs": 2, "sm": 1},
-                    alignment=ft.alignment.center_left,
-                ),
-                ft.Container(
-                    ft.Text(WINDOW_CONFIG["title"], style=TextStyles.subtitle(is_dark), no_wrap=True),
-                    col={"xs": 10, "sm": 5},
-                    alignment=ft.alignment.center_left,
-                ),
-                ft.Container(
-                    self.operator_selector,
-                    col={"xs": 12, "sm": 6},
-                ),
+                ft.Image(src="icon.png", width=40, height=40),
+                ft.Text(WINDOW_CONFIG["title"], style=TextStyles.subtitle(is_dark), no_wrap=True, expand=True),
             ],
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+            spacing=10
         )
         return ft.AppBar(
             leading_width=0, title=title_row, bgcolor=ContainerStyles.card(is_dark)["bgcolor"],
             actions=[
-                copy_button,
                 ft.PopupMenuButton(items=[
                     ft.PopupMenuItem(text="Cambiar Tema", icon=ThemeManager.get_theme_icon(is_dark), on_click=lambda _: self.on_theme_change()),
                     ft.PopupMenuItem(text="Gestionar Operadores", icon=ft.Icons.MANAGE_ACCOUNTS, on_click=lambda _: self.on_manage_operators()),
@@ -302,21 +283,16 @@ class CustomAppBar:
 
     def update_theme(self):
         is_dark = self.app_state.is_dark_theme
+        # El título es el segundo control en la fila del título
         title_text = self.app_bar.title.controls[1]
         title_text.style = TextStyles.subtitle(is_dark)
 
         self.app_bar.bgcolor = ContainerStyles.card(is_dark)["bgcolor"]
 
-        # Actualizar el menú emergente y el botón de copiar
-        popup_menu = self.app_bar.actions[1]
+        # Actualizar el menú emergente
+        popup_menu = self.app_bar.actions[0]
         popup_menu.items[0].text = "Cambiar Tema"
         popup_menu.items[0].icon = ThemeManager.get_theme_icon(is_dark)
-
-        copy_button = self.app_bar.actions[0]
-        copy_button.style = ButtonStyles.primary()
-
-        # Actualizar el selector de operador
-        self.operator_selector.update_theme()
 
         # self.app_bar.update() # Removido para la actualización por lotes
 
