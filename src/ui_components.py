@@ -9,11 +9,10 @@ from models import AppState, Operador, ReportEntry
 from styles import TextStyles, ButtonStyles, ContainerStyles, InputStyles, Colors, ThemeManager, Shadows
 from config import NOMBRES_TIEMPO, TIEMPO, EMOJI_TIEMPO, JERARQUIAS, WINDOW_CONFIG, get_cargos
 
-class ReportEntryRow(ft.Row):
-    """Representa una única línea de entrada de reporte para un municipio."""
+class ReportEntryRow(ft.ResponsiveRow):
+    """Representa una única línea de entrada de reporte para un municipio, usando un layout responsivo."""
     def __init__(self, app_state: AppState, municipio: str, entry: ReportEntry, on_delete: Callable):
-        # La propiedad 'wrap' permite que los controles se muevan a la siguiente línea en pantallas pequeñas.
-        super().__init__(spacing=5, vertical_alignment=ft.CrossAxisAlignment.CENTER, wrap=True)
+        super().__init__(spacing=5, vertical_alignment=ft.CrossAxisAlignment.CENTER)
         self.app_state = app_state
         self.municipio = municipio
         self.entry = entry
@@ -23,7 +22,7 @@ class ReportEntryRow(ft.Row):
         self._is_first_entry = self.app_state.estados_municipios[self.municipio][0].id == self.entry.id
 
         self.time_field = ft.TextField(
-            label="Hora", width=80, value=self.entry.hora,
+            label="Hora", value=self.entry.hora,
             on_blur=self._on_data_change,
             **InputStyles.textfield(self.app_state.is_dark_theme)
         )
@@ -32,14 +31,12 @@ class ReportEntryRow(ft.Row):
             ft.dropdown.Option(key=str(i), text=f"{EMOJI_TIEMPO[i]} {nombre}") for i, nombre in enumerate(NOMBRES_TIEMPO)
         ]
 
-        # 'expand=True' hace que el dropdown ocupe el espacio restante.
         self.weather_dropdown = ft.Dropdown(
             options=weather_options,
             value=str(self.entry.indice_tiempo) if self.entry.indice_tiempo is not None else "-1",
             padding=ft.padding.symmetric(vertical=12, horizontal=10),
             on_change=self._on_data_change,
-            **InputStyles.dropdown(self.app_state.is_dark_theme),
-            expand=True
+            **InputStyles.dropdown(self.app_state.is_dark_theme)
         )
 
         self.delete_button = ft.IconButton(
@@ -47,7 +44,11 @@ class ReportEntryRow(ft.Row):
             on_click=self._delete_clicked, visible=not self._is_first_entry, tooltip="Eliminar línea"
         )
 
-        self.controls = [self.time_field, self.weather_dropdown, self.delete_button]
+        self.controls = [
+            ft.Container(self.time_field, col={"xs": 4, "sm": 3}),
+            ft.Container(self.weather_dropdown, col={"xs": 8, "sm": 7}),
+            ft.Container(self.delete_button, col={"xs": 12, "sm": 2}),
+        ]
         self._update_time_field_visibility()
 
     def _on_data_change(self, e=None):
