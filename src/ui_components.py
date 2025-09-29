@@ -12,6 +12,7 @@ from config import NOMBRES_TIEMPO, TIEMPO, EMOJI_TIEMPO, JERARQUIAS, WINDOW_CONF
 class ReportEntryRow(ft.Row):
     """Representa una única línea de entrada de reporte para un municipio."""
     def __init__(self, app_state: AppState, municipio: str, entry: ReportEntry, on_delete: Callable):
+        # La propiedad 'wrap' permite que los controles se muevan a la siguiente línea en pantallas pequeñas.
         super().__init__(spacing=5, vertical_alignment=ft.CrossAxisAlignment.CENTER, wrap=True)
         self.app_state = app_state
         self.municipio = municipio
@@ -22,23 +23,23 @@ class ReportEntryRow(ft.Row):
         self._is_first_entry = self.app_state.estados_municipios[self.municipio][0].id == self.entry.id
 
         self.time_field = ft.TextField(
-            label="Hora", value=self.entry.hora,
+            label="Hora", width=80, value=self.entry.hora,
             on_blur=self._on_data_change,
-            **InputStyles.textfield(self.app_state.is_dark_theme),
-            expand=1
+            **InputStyles.textfield(self.app_state.is_dark_theme)
         )
 
         weather_options = [ft.dropdown.Option(key="-1", text="Selecciona una opción")] + [
             ft.dropdown.Option(key=str(i), text=f"{EMOJI_TIEMPO[i]} {nombre}") for i, nombre in enumerate(NOMBRES_TIEMPO)
         ]
 
+        # 'expand=True' hace que el dropdown ocupe el espacio restante.
         self.weather_dropdown = ft.Dropdown(
             options=weather_options,
             value=str(self.entry.indice_tiempo) if self.entry.indice_tiempo is not None else "-1",
             padding=ft.padding.symmetric(vertical=12, horizontal=10),
             on_change=self._on_data_change,
             **InputStyles.dropdown(self.app_state.is_dark_theme),
-            expand=4
+            expand=True
         )
 
         self.delete_button = ft.IconButton(
@@ -167,7 +168,7 @@ class EjeCard(ft.Container):
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             entries_container,
             ft.Divider(height=5, thickness=0.5)
-        ], expand=True)
+        ])
 
     def _add_entry_row(self, municipio: str):
         """Añade una nueva fila de entrada de forma eficiente."""
@@ -232,16 +233,18 @@ class CustomAppBar:
         copy_button = ft.FilledButton(text="Copiar", icon=ft.Icons.CONTENT_COPY, on_click=lambda _: self.on_copy(), style=ButtonStyles.primary())
         self.operator_selector.label = ""
         self.operator_selector.hint_text = "Operador que reporta"
-        self.operator_selector.expand = True
+
         title_row = ft.ResponsiveRow(
             [
                 ft.Container(
                     ft.Image(src="icon.png", width=40, height=40),
                     col={"xs": 2, "sm": 1},
+                    alignment=ft.alignment.center_left,
                 ),
                 ft.Container(
                     ft.Text(WINDOW_CONFIG["title"], style=TextStyles.subtitle(is_dark), no_wrap=True),
                     col={"xs": 10, "sm": 5},
+                    alignment=ft.alignment.center_left,
                 ),
                 ft.Container(
                     self.operator_selector,
@@ -408,7 +411,7 @@ class OperatorManagementDialog:
                 ft.Divider(),
                 self.eliminar_dropdown,
                 ft.Row([delete_button], alignment="center")
-            ], scroll=ft.ScrollMode.ADAPTIVE, spacing=10),
+            ], scroll=ft.ScrollMode.ADAPTIVE, spacing=10, tight=True),
             actions=[close_button],
             actions_alignment="center",
             bgcolor=dialog_style.get("bgcolor"),
